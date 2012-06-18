@@ -1,11 +1,5 @@
 extern public void BotClass() {}
 
-bool object::isFlying() {
-	return category == WingedGrabber ||
-	  category == WingedSniffer ||
-	  category == WingedSniffer ||
-	  category == WingedOrgaShooter;
-}
 
 public class Bot {
 	//States
@@ -17,22 +11,59 @@ public class Bot {
 	point lastPos;
 	int state;
 	
-	void Bot (object _me) {
+	public void Bot (object _me) {
 		me = _me;
 		lastPos = me.position;
 		state = NORMAL;
+	}
+	
+	public bool isFlying() {
+		return me.category == WingedGrabber ||
+		  me.category == WingedShooter ||
+		  me.category == WingedSniffer ||
+		  me.category == WingedOrgaShooter;
+	}
+	
+	public bool get(int category, float minDistance, bool shouldWait) {
+		object o;
+		
+		while (true) {
+			o = radar(category, 0, 360, minDistance);
+			if (o != null) break;
+			if (!shouldWait) return false;
+			wait(0.25);
+		};
+		
+		bot_goto(o.position, 2);
+		grab();
+		return true;
+	}
+	
+	public void deposit(int flag) {
+		if (me.load == null) {
+			message("Nothing to deposit!");
+			return;
+		}
+		
+		//find a free spot
+		object o = radar(flag);
+		point free = space(o.position, 0, 20, 2);
+		bot_goto(free, 1);
+		drop();
 	}
 	
 	public void bot_goto(point pos, float tol) {
 		if (isFlying()) {
 			flyto(pos, tol);
 		} else {
+			checkPower();
 			goto(pos);
 		}
 	}
 	
 	public void flyto(point pos, float tollerance) {
 		while(distance2d(me.position, pos) > tollerance) {
+			checkPower();
 			moveTo(pos);
 			wait(0.1);
 		}
@@ -42,8 +73,9 @@ public class Bot {
 	
 	public void follow(object target, float dis) {
 		
-		int i = 0;
-		while(target != null && distance2d(me.position, target.position) > dis) {
+		while(target != null && (distance(me.position, target.position) > dis ||
+		    abs(direction(target.position)) > 5)) {
+			checkPower();
 			moveTo(target.position);
 			wait(0.1);
 		}
@@ -51,14 +83,28 @@ public class Bot {
 		motor(0,0);
 	}
 	
-	public void moveTo(point pos) {
-		
+	void checkPower() {
 		//check for out of power
 		if (state != RECHARGING && me.energyCell.energyLevel < 0.25) {
 			message("Recharging...");
 			bot_recharge();
 			message("Recharging done.");
 		}
+	}
+	
+	public void moveTo(point pos) {
+		
+		//check for jet overheat
+		if (me.temperature > 0.8) {
+			message("Cooldown...");
+			motor(0,0);
+			jet(-1);
+			while(me.temperature > 0) {
+				wait(0.1);
+			}
+			message("Cooldown done.");
+		}
+		
 		
 		//check for stuck
 		if (distance(me.position, lastPos) < 0.25) {
@@ -122,7 +168,7 @@ public class Bot {
 	
 	public point turnTowards(point pos) {
 		float dir = direction(pos);
-		float strength = dir / 90;
+		float strength = dir / 45;
 		
 		point motors(0,0);
 		if (abs(dir) > 5) {
@@ -145,6 +191,6 @@ public class Bot {
 			wait(1);
 		}
 		
-		state = RECHARGING;
+		state = NORMAL;
 	}
 }

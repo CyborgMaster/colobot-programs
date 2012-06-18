@@ -1,17 +1,24 @@
 extern void object::Kill()
 {
-	int alienType = AlienWorm;
+	int alienType = AlienAnt;
 	
-	object    item;
+	Bot me(this);
+	
+	object item;
 	
 	aim(-20);
 	
 	while (true)
 	{
 		item = radar(alienType);
-		follow(item, 20);
-		if (item != null) fire(1);
-		
+		me.follow(item, 30);
+		motor(1,1);
+		if (item != null) {
+			turn(direction(item.position));
+			motor(1,1);
+			fire(1);
+			wait(1.5);
+		}
 		wait(0.1);
 	}
 }

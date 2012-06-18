@@ -1,0 +1,15 @@
+extern void object::Recycle()
+{
+	Bot me(this);
+	object o;
+	
+	while(true) {
+		o = radar(Wreck);
+		if (o == null) break;
+		
+		me.bot_goto(o.position, 2);
+		recycle();
+	}
+	
+	message("No more wrecks to recycle");
+}

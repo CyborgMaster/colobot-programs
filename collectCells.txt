@@ -1,0 +1,33 @@
+extern void object::collectCells() {
+	//constants
+	int flag = GreenFlag;
+	
+	Bot me(this);
+	
+	object o = radar(flag);
+	if (distance(position, o.position) > 10) {
+		me.bot_goto(o.position, 2);
+	}
+	
+	while(true) {
+		o = radar(PowerCell, 0, 360, 30);
+		if (o == null) break;
+		
+		me.bot_goto(o.position, 2);
+		grab();
+		
+		//make sure the cell is charged
+		if (load.energyLevel < 1) {
+			o = radar(PowerStation);
+			me.bot_goto(o.position, 1);
+			while(load.energyLevel < 1) {
+				wait(1);
+			}
+		}
+		
+		me.deposit(flag);
+	}
+	
+	message("No more Power Cells!");
+}
+
