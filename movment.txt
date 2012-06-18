@@ -1,0 +1,157 @@
+extern public void Movement() {}
+
+public void object::follow(object target, float dis) {
+	Movement m(this);
+	m.mFollow(target, dis);
+}
+
+public void object::aGoto(point pos, float tol) {
+	if (isFlying()) {
+		Movement m(this);
+		m.goTo(pos, tol);
+	} else {
+		goto(pos);
+	}
+}
+
+bool object::isFlying() {
+	return category == WingedGrabber ||
+	  category == WingedSniffer ||
+	  category == WingedSniffer ||
+	  category == WingedOrgaShooter;
+}
+
+
+public class Movement {
+	//States
+	//NORMAL = 0
+	//RECHARGING = 1
+	
+	object me;
+	int stuckCount = 0;
+	point lastPos;
+	int state;
+	
+	void Movement (object _me) {
+		me = _me;
+		lastPos = me.position;
+		state = 0; //NORMAL
+	}
+	
+	public void goTo(point pos, float tollerance) {
+		while(distance2d(me.position, pos) > tollerance) {
+			moveTo(pos);
+			wait(0.1);
+		}
+		
+		motor(0,0);
+	}
+	
+	public void mFollow(object target, float dis) {
+		
+		int i = 0;
+		while(target != null && distance2d(me.position, target.position) > dis) {
+			moveTo(target.position);
+			wait(0.1);
+		}
+		
+		motor(0,0);
+	}
+	
+	public void moveTo(point pos) {
+		
+		//check for out of power
+		if (state != 1 && me.energyCell.energyLevel < 0.25) {
+			message("Recharging...");
+			move_recharge();
+			message("Recharging done.");
+		}
+		
+		//check for stuck
+		if (distance(me.position, lastPos) < 0.25) {
+			if (stuckCount++ >= 10) {
+				message("stuck!");
+				
+				//try moving around it
+				jet(1);
+				motor(-1,-1);
+				wait(1);
+				turn(90);
+				motor(1,1);
+				wait(1);
+				return;
+			}
+		} else {
+			stuckCount = 0;
+			lastPos = me.position;
+		}
+		
+		bool flying = me.altitude > 0;
+		
+		//Set motors
+		point motors;
+		motors = turnTowards(pos);
+		
+		float moveMult = 0.2;
+		if (flying) moveMult = 0.05;
+		
+		float d = distance2d(me.position, pos);
+		if (d > 1) {
+			motors.x += d * moveMult;
+			motors.y += d * moveMult;
+		} else {
+			motor(0,0);
+			return;
+		}
+		
+		motor(motors.x, motors.y);
+		
+		//Jet
+		
+		//check terain height
+		float alt = topo(me.position);
+		if (alt < 0) alt = 0;
+		
+		float fly = alt - me.position.z;
+		if (d > 5 && d < 15) {
+			fly += (d-5);
+		} else if (d > 15) {
+			fly += 10;
+		} else {
+			fly = -10;
+		}
+		
+		//message("fly" + fly);
+		
+		jet(fly * 0.1);
+	}
+	
+	
+	public point turnTowards(point pos) {
+		float dir = direction(pos);
+		float strength = dir / 90;
+		
+		point motors(0,0);
+		if (abs(dir) > 5) {
+			motors.x = strength * -1;
+			motors.y = strength;
+		} else {
+			motors.x = 0;
+			motors.y = 0;
+		}
+		
+		return motors;
+	}
+	
+	void move_recharge() {
+		state = 1; //RECHARGING
+		
+		object o = radar(PowerStation);
+		goTo(o.position, 1);
+		while(me.energyCell.energyLevel < 1) {
+			wait(1);
+		}
+		
+		state = 0; //NORMAL
+	}
+}
