@@ -169,16 +169,7 @@ public class Bot {
 	public point turnTowards(point pos) {
 		float dir = direction(pos);
 		float strength = dir / 45;
-		
-		point motors(0,0);
-		if (abs(dir) > 5) {
-			motors.x = strength * -1;
-			motors.y = strength;
-		} else {
-			motors.x = 0;
-			motors.y = 0;
-		}
-		
+		point motors(strength * -1, strength);
 		return motors;
 	}
 	
