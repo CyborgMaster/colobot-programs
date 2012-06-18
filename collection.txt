@@ -1,18 +1,18 @@
 extern void object::Collection() {
-	collect(Titanium);
+	collect(BlackBox);
 	
 }
 
 void object::collect(int resource) {
 	object o = radar(resource, 0, 360, 50);
 	while(o != null) {
-		ggoTo(o.position, 2);
+		aGoto(o.position, 2);
 		grab();
 		
 		//find a free spot
 		object blueFlag = radar(GreenFlag);
 		point free = space(blueFlag.position, 0, 20, 1);
-		ggoTo(free, 1);
+		aGoto(free, 1);
 		drop();
 		
 		o = radar(resource, 0, 360, 50);
