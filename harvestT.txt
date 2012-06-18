@@ -2,6 +2,8 @@ extern void object::harvestTOre() {
 	bool waitForOre = true;
 	int flag = BlueFlag;
 	
+	Bot me(this);
+	
 	object o;
 	while(true) {
 		if (waitForOre) {
@@ -19,10 +21,10 @@ extern void object::harvestTOre() {
 			}
 		}
 		
-		aGoto(o.position, 2);
+		me.bot_goto(o.position, 2);
 		grab();
 		o = radar(Converter);
-		aGoto(o.position, 1);
+		me.bot_goto(o.position, 1);
 		drop();
 		move(-2.5);
 		
@@ -33,13 +35,13 @@ extern void object::harvestTOre() {
 			wait(0.25);
 		}
 		
-		aGoto(o.position, 2);
+		me.bot_goto(o.position, 2);
 		grab();
 		
 		//find a free spot
 		o = radar(flag);
 		point free = space(o.position, 0, 20, 2);
-		aGoto(free, 1);
+		me.bot_goto(free, 1);
 		drop();
 	}
 }
