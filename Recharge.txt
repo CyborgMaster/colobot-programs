@@ -1,0 +1,9 @@
+extern void object::recharge() {
+	point start = position;
+	object o = radar(PowerStation);
+	ggoTo(o.position, 1);
+	while(energyCell.energyLevel < 1) {
+		wait(1);
+	}
+	ggoTo(start, 1);
+}

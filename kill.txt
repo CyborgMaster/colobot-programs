@@ -1,0 +1,17 @@
+extern void object::Kill()
+{
+	int alienType = AlienWorm;
+	
+	object    item;
+	
+	aim(-20);
+	
+	while (true)
+	{
+		item = radar(alienType);
+		follow(item, 20);
+		if (item != null) fire(1);
+		
+		wait(0.1);
+	}
+}
