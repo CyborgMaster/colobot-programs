@@ -1,5 +1,15 @@
 extern public void BotClass() {}
 
+public bool object::isAlive() {
+	return search(category, position) == this;
+}
+
+public point alongDirection(point origin, float angle, float dis) {
+	point p;
+	p.x = origin.x + cos(angle) * dis;
+	p.y = origin.y + sin(angle) * dis;
+	return p;
+}
 
 public class Bot {
 	//States

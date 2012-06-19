@@ -18,9 +18,21 @@ extern void object::Kill()
 		motor(1,1);
 		if (item != null) {
 			turn(direction(item.position));
+			//turn(-10);
 			motor(1,1);
+			
+			//calculate the point to go to if we miss
+			point p = alongDirection(item.position, orientation, 50);
+			
 			fire(1);
-			wait(1.5);
+			wait(0.5); //wait for bullets to get there
+			
+			if (item.isAlive()) {
+				message("Missed");
+				
+				//goto spot to set up next strafe
+				me.bot_goto(p, 1);
+			}
 		}
 		wait(0.1);
 	}
