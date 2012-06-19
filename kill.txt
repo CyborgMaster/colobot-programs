@@ -14,7 +14,7 @@ extern void object::Kill()
 		item = radar(alienType);
 		if (item == null) break;
 		
-		me.follow(item, 30);
+		me.follow(item, 33, 60);
 		motor(1,1);
 		if (item != null) {
 			turn(direction(item.position));
@@ -40,7 +40,7 @@ extern void object::Kill()
 	message("All aliens killed!");
 	
 	//get landing spot
-	point p = alongDirection(position, orientation, 15);
+	point p = alongDirection(position, orientation, 25);
 	
-	me.bot_goto(p, 1);
+	me.bot_goto(p, 3);
 }

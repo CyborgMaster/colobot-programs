@@ -75,19 +75,19 @@ public class Bot {
 	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			checkPower();
-			moveTo(pos, land);
+			moveTo(pos, land, -1);
 			wait(0.1);
 		}
 		
 		motor(0,0);
 	}
 	
-	public void follow(object target, float dis) {
+	public void follow(object target, float dis, int matchZ) {
 		
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
 			checkPower();
-			moveTo(target.position, false);
+			moveTo(target.position, false, matchZ);
 			wait(0.1);
 		}
 		
@@ -103,7 +103,7 @@ public class Bot {
 		}
 	}
 	
-	public void moveTo(point pos, bool land) {
+	public void moveTo(point pos, bool land, int matchZ) {
 		
 		//check for jet overheat
 		if (me.temperature > 0.8) {
@@ -166,23 +166,25 @@ public class Bot {
 		//check terain height
 		float alt = topo(me.position);
 		if (alt < 0) alt = 0;
+		float fly;
 		
-		float fly = alt - me.position.z;
-		if (!land) {
-			fly += hoverHeight;
-		} else if (d > 5 && d < 15) {
-			fly += (d - 5) * (hoverHeight / 10) ;
-		} else if (d > 15) {
-			fly += hoverHeight;
-		} else { // d < 5
-			fly = -10;
+		if (matchZ > 0 && d < matchZ) {
+			fly = pos.z - me.position.z + hoverHeight;
+		} else {
+			fly = alt - me.position.z;
+			if (!land) {
+				fly += hoverHeight;
+			} else if (d > 5 && d < 15) {
+				fly += (d - 5) * (hoverHeight / 10) ;
+			} else if (d > 15) {
+				fly += hoverHeight;
+			} else { // d < 5
+				fly = -10;
+			}
 		}
-		
-		//message("fly" + fly);
 		
 		jet(fly * 0.2);
 	}
-	
 	
 	public point turnTowards(point pos) {
 		float dir = direction(pos);
