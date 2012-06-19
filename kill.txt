@@ -17,9 +17,25 @@ extern void object::Kill()
 		me.follow(item, 33, 60);
 		motor(1,1);
 		if (item != null) {
-			turn(direction(item.position));
+			//find out which way the ant is facing (and is therefore likely to walk);
+			float face = item.orientation - orientation;
+			message("face: " + face);
+			float offset;
+			if (face < 0) {
+				offset = 10;
+			} else {
+				offset = -10;
+			}
+			
+			turn(direction(item.position) + offset);
 			//turn(-10);
-			motor(1,1);
+			
+			if (offset > 0) {
+				motor(1, 0.3);
+			} else {
+				motor(0.3, 1);
+			}
+			
 			
 			//calculate the point to go to if we miss
 			point p = alongDirection(item.position, orientation, 50);
