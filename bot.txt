@@ -143,11 +143,11 @@ public class Bot {
 		motors = turnTowards(pos);
 		
 		float d = distance2d(me.position, pos);
+		float moveMult = 0.2;
+		if (flying) moveMult = 0.05;
 		
 		if (land) {
 			if (d > 1) {
-				float moveMult = 0.2;
-				if (flying) moveMult = 0.05;
 				motors.x += d * moveMult;
 				motors.y += d * moveMult;
 			} else {
@@ -180,7 +180,7 @@ public class Bot {
 		
 		//message("fly" + fly);
 		
-		jet(fly * 0.3);
+		jet(fly * 0.2);
 	}
 	
 	
