@@ -40,9 +40,7 @@ extern void object::Kill()
 	message("All aliens killed!");
 	
 	//get landing spot
-	point p = position;
-	p.x += cos(orientation) * 15;
-	p.y += sin(orientation) * 15;
+	point p = alongDirection(position, orientation, 15);
 	
 	me.bot_goto(p, 1);
 }
