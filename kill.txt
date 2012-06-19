@@ -31,7 +31,7 @@ extern void object::Kill()
 				message("Missed");
 				
 				//goto spot to set up next strafe
-				me.bot_goto(p, 1);
+				me.flyto(p, 2, false);
 			}
 		}
 		wait(0.1);

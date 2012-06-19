@@ -65,17 +65,17 @@ public class Bot {
 	
 	public void bot_goto(point pos, float tol) {
 		if (isFlying()) {
-			flyto(pos, tol);
+			flyto(pos, tol, true);
 		} else {
 			checkPower();
 			goto(pos);
 		}
 	}
 	
-	public void flyto(point pos, float tollerance) {
+	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			checkPower();
-			moveTo(pos);
+			moveTo(pos, land);
 			wait(0.1);
 		}
 		
@@ -87,7 +87,7 @@ public class Bot {
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
 			checkPower();
-			moveTo(target.position);
+			moveTo(target.position, false);
 			wait(0.1);
 		}
 		
@@ -103,7 +103,7 @@ public class Bot {
 		}
 	}
 	
-	public void moveTo(point pos) {
+	public void moveTo(point pos, bool land) {
 		
 		//check for jet overheat
 		if (me.temperature > 0.8) {
@@ -142,16 +142,21 @@ public class Bot {
 		point motors;
 		motors = turnTowards(pos);
 		
-		float moveMult = 0.2;
-		if (flying) moveMult = 0.05;
-		
 		float d = distance2d(me.position, pos);
-		if (d > 1) {
-			motors.x += d * moveMult;
-			motors.y += d * moveMult;
-		} else {
-			motor(0,0);
-			return;
+		
+		if (land) {
+			if (d > 1) {
+				float moveMult = 0.2;
+				if (flying) moveMult = 0.05;
+				motors.x += d * moveMult;
+				motors.y += d * moveMult;
+			} else {
+				motor(0,0);
+				return;
+			}
+		} else { //if not landing, don't stop, fly through the point
+			motors.x += 1;
+			motors.y += 1;
 		}
 		
 		motor(motors.x, motors.y);
@@ -163,11 +168,13 @@ public class Bot {
 		if (alt < 0) alt = 0;
 		
 		float fly = alt - me.position.z;
-		if (d > 5 && d < 15) {
+		if (!land) {
+			fly += hoverHeight;
+		} else if (d > 5 && d < 15) {
 			fly += (d - 5) * (hoverHeight / 10) ;
 		} else if (d > 15) {
 			fly += hoverHeight;
-		} else {
+		} else { // d < 5
 			fly = -10;
 		}
 		
