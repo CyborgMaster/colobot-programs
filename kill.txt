@@ -3,6 +3,7 @@ extern void object::Kill()
 	int alienType = AlienAnt;
 	
 	Bot me(this);
+	me.hoverHeight = 10;
 	
 	object item;
 	
@@ -11,6 +12,8 @@ extern void object::Kill()
 	while (true)
 	{
 		item = radar(alienType);
+		if (item == null) break;
+		
 		me.follow(item, 30);
 		motor(1,1);
 		if (item != null) {
@@ -21,4 +24,13 @@ extern void object::Kill()
 		}
 		wait(0.1);
 	}
+	
+	message("All aliens killed!");
+	
+	//get landing spot
+	point p = position;
+	p.x += cos(orientation) * 15;
+	p.y += sin(orientation) * 15;
+	
+	me.bot_goto(p, 1);
 }

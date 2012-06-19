@@ -7,9 +7,10 @@ public class Bot {
 	int RECHARGING = 1;
 	
 	object me;
+	int state;
 	int stuckCount = 0;
 	point lastPos;
-	int state;
+	float hoverHeight = 10;
 	
 	public void Bot (object _me) {
 		me = _me;
@@ -153,16 +154,16 @@ public class Bot {
 		
 		float fly = alt - me.position.z;
 		if (d > 5 && d < 15) {
-			fly += (d-5);
+			fly += (d - 5) * (hoverHeight / 10) ;
 		} else if (d > 15) {
-			fly += 10;
+			fly += hoverHeight;
 		} else {
 			fly = -10;
 		}
 		
 		//message("fly" + fly);
 		
-		jet(fly * 0.1);
+		jet(fly * 0.3);
 	}
 	
 	
