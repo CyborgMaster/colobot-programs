@@ -14,34 +14,36 @@ extern void object::Kill()
 		item = radar(alienType);
 		if (item == null) break;
 		
-		me.follow(item, 33, 75);
-		motor(1,1);
-		if (item != null) {
-			turn(direction(item.position));
-			//turn(-10);
-			
-			//calculate the point to go to if we miss
-			point p = alongDirection(item.position, orientation, 50);
-			
-			//find out which way the ant is facing (and is therefore likely to walk);
-			float face = item.orientation - orientation;
-			while (face > 180) face -= 360;
-			while (face < -180) face += 360;
-			
-			if (face > 0) {
-				motor(0.7, 1);
-			} else {
-				motor(1, 0.7);
-			}
-			
-			fire(0.25);
-			wait(0.5); //wait for bullets to get there
-			
-			if (item.isAlive()) {
-				message("Missed");
+		while (item.isAlive()) {
+			me.follow(item, 33, 75);
+			motor(1,1);
+			if (item != null) {
+				turn(direction(item.position));
+				//turn(-10);
 				
-				//goto spot to set up next strafe
-				me.flyto(p, 2, false);
+				//calculate the point to go to if we miss
+				point p = alongDirection(item.position, orientation, 50);
+				
+				//find out which way the ant is facing (and is therefore likely to walk);
+				float face = item.orientation - orientation;
+				while (face > 180) face -= 360;
+				while (face < -180) face += 360;
+				
+				if (face > 0) {
+					motor(0.7, 1);
+				} else {
+					motor(1, 0.7);
+				}
+				
+				fire(0.25);
+				wait(0.6); //wait for bullets to get there
+				
+				if (item.isAlive()) {
+					message("Missed");
+					
+					//goto spot to set up next strafe
+					me.flyto(p, 2, false);
+				}
 			}
 		}
 		wait(0.1);
