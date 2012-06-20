@@ -142,8 +142,8 @@ public class Bot {
 		if (isFlying()) {
 			flyto(pos, tol, true);
 		} else {
-			checkPower();
-			checkShields();
+			checkPower(0.25);
+			checkShields(0.5);
 			goto(pos);
 		}
 	}
@@ -151,8 +151,8 @@ public class Bot {
 	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			checkTemperature();
-			checkPower();
-			checkShields();
+			checkPower(0.25);
+			checkShields(0.5);
 			moveTo(pos, land, -1);
 			wait(0.1);
 		}
@@ -165,8 +165,8 @@ public class Bot {
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
 			checkTemperature();
-			checkPower();
-			checkShields();
+			checkPower(0.25);
+			checkShields(0.5);
 			moveTo(target.position, false, matchZ);
 			wait(0.1);
 		}
@@ -174,29 +174,56 @@ public class Bot {
 		motor(0,0);
 	}
 	
-	void checkPower() {
+	void checkPower(float minLevel) {
 		//check for out of power
-		if (state == NORMAL && me.energyCell.energyLevel < 0.25) {
+		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
 			message("Recharging...");
-			bot_recharge();
+			state = RECHARGING;
+			
+			object o = radar(PowerStation);
+			bot_goto(o.position, 1);
+			while(me.energyCell.energyLevel < 1) {
+				wait(1);
+			}
+			state = NORMAL;
 			message("Recharging done.");
+			
+			//check to see if we should also repair
+			o = radar(RepairCenter);
+			if (distance2d(me.position, o.position) < 100) {
+				checkShields(0.90);
+			}
 		}
 	}
 	
-	void checkShields() {
-		if (state == NORMAL && me.shieldLevel < 0.50) {
+	void checkShields(float minLevel) {
+		if (state == NORMAL && me.shieldLevel < minLevel) {
 			message("Repairing...");
-			repair();
+			state = REPAIRING;
+			
+			object o = radar(RepairCenter);
+			bot_goto(o.position, 1);
+			while(me.shieldLevel < 1) {
+				wait(1);
+			}
+			
+			state = NORMAL;
 			message("Reparing done.");
+			
+			//check to see if we should also recharge
+			o = radar(PowerStation);
+			if (distance2d(me.position, o.position) < 100) {
+				checkPower(0.75);
+			}
 		}
 	}
 	
 	void checkTemperature() {
 		//check for jet overheat
 		if (state != COOLDOWN && me.temperature > 0.7) {
+			message("Cooldown...");
 			int oldState = state;
 			state = COOLDOWN;
-			message("Cooldown...");
 			point safe = nearestSafeSpot(me.position, 50);
 			message("Found spot.");
 			flyto(safe, 5, true);
@@ -232,8 +259,11 @@ public class Bot {
 		}
 		
 		//Set motors
-		point motors;
-		motors = turnTowards(pos);
+		float ml, mr;
+		
+		float strength = direction(pos) / 45;
+		ml = strength * -1;
+		mr = strength;
 		
 		float d = distance2d(me.position, pos);
 		float moveMult = 0.2;
@@ -241,18 +271,18 @@ public class Bot {
 		
 		if (land) {
 			if (d > 1) {
-				motors.x += d * moveMult;
-				motors.y += d * moveMult;
+				ml += d * moveMult;
+				mr += d * moveMult;
 			} else {
 				motor(0,0);
 				return;
 			}
 		} else { //if not landing, don't stop, fly through the point
-			motors.x += 1;
-			motors.y += 1;
+			ml += 1;
+			mr += 1;
 		}
 		
-		motor(motors.x, motors.y);
+		motor(ml, mr);
 		
 		//Jet
 		
@@ -277,47 +307,5 @@ public class Bot {
 		}
 		
 		jet(fly * 0.2);
-	}
-	
-	public point turnTowards(point pos) {
-		float strength = direction(pos) / 45;
-		point motors(strength * -1, strength);
-		return motors;
-	}
-	
-	void bot_recharge() {
-		state = RECHARGING;
-		
-		object o = radar(PowerStation);
-		bot_goto(o.position, 1);
-		while(me.energyCell.energyLevel < 1) {
-			wait(1);
-		}
-		
-		state = NORMAL;
-		
-		//check to see if we should also repair
-		o = radar(RepairCenter);
-		if (me.shieldLevel < 0.90 && distance2d(me.position, o.position) < 100) {
-			repair();
-		}
-	}
-	
-	public void repair() {
-		state = REPAIRING;
-		
-		object o = radar(RepairCenter);
-		bot_goto(o.position, 1);
-		while(me.shieldLevel < 1) {
-			wait(1);
-		}
-		
-		state = NORMAL;
-		
-		//check to see if we should also recharge
-		o = radar(PowerStation);
-		if (me.energyCell.energyLevel < 0.75 && distance2d(me.position, o.position) < 100) {
-			bot_recharge();
-		}
 	}
 }
