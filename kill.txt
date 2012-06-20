@@ -14,33 +14,27 @@ extern void object::Kill()
 		item = radar(alienType);
 		if (item == null) break;
 		
-		me.follow(item, 33, 60);
+		me.follow(item, 33, 75);
 		motor(1,1);
 		if (item != null) {
-			//find out which way the ant is facing (and is therefore likely to walk);
-			float face = item.orientation - orientation;
-			message("face: " + face);
-			float offset;
-			if (face < 0) {
-				offset = 10;
-			} else {
-				offset = -10;
-			}
-			
-			turn(direction(item.position) + offset);
+			turn(direction(item.position));
 			//turn(-10);
-			
-			if (offset > 0) {
-				motor(1, 0.3);
-			} else {
-				motor(0.3, 1);
-			}
-			
 			
 			//calculate the point to go to if we miss
 			point p = alongDirection(item.position, orientation, 50);
 			
-			fire(1);
+			//find out which way the ant is facing (and is therefore likely to walk);
+			float face = item.orientation - orientation;
+			while (face > 180) face -= 360;
+			while (face < -180) face += 360;
+			
+			if (face > 0) {
+				motor(0.7, 1);
+			} else {
+				motor(1, 0.7);
+			}
+			
+			fire(0.25);
 			wait(0.5); //wait for bullets to get there
 			
 			if (item.isAlive()) {
