@@ -15,7 +15,7 @@ extern void object::Kill()
 		if (item == null) break;
 		
 		while (item.isAlive()) {
-			me.follow(item, 33, 75);
+			me.follow(item, 32, 75);
 			motor(1,1);
 			if (item != null) {
 				turn(direction(item.position));
