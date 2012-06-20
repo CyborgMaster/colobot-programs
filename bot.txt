@@ -95,7 +95,10 @@ public class Bot {
 	int state;
 	int stuckCount = 0;
 	point lastPos;
+	
+	//configurable parameters
 	float hoverHeight = 10;
+	float rechargeLevel = 0.25;
 	
 	public void Bot (object _me) {
 		me = _me;
@@ -142,7 +145,7 @@ public class Bot {
 		if (isFlying()) {
 			flyto(pos, tol, true);
 		} else {
-			checkPower(0.25);
+			checkPower(rechargeLevel);
 			checkShields(0.5);
 			goto(pos);
 		}
@@ -151,7 +154,7 @@ public class Bot {
 	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			checkTemperature();
-			checkPower(0.25);
+			checkPower(rechargeLevel);
 			checkShields(0.5);
 			moveTo(pos, land, -1);
 			wait(0.1);
@@ -165,7 +168,7 @@ public class Bot {
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
 			checkTemperature();
-			checkPower(0.25);
+			checkPower(rechargeLevel);
 			checkShields(0.5);
 			point p = target.position;
 			p.z += 10;
