@@ -100,7 +100,7 @@ public class Bot {
 	
 	void checkPower() {
 		//check for out of power
-		if (state < RECHARGING && me.energyCell.energyLevel < 0.25) {
+		if (state == NORMAL && me.energyCell.energyLevel < 0.25) {
 			message("Recharging...");
 			bot_recharge();
 			message("Recharging done.");
@@ -108,7 +108,7 @@ public class Bot {
 	}
 	
 	void checkShields() {
-		if (state < REPAIRING && me.shieldLevel < 0.50) {
+		if (state == NORMAL && me.shieldLevel < 0.50) {
 			message("Repairing...");
 			repair();
 			message("Reparing done.");
@@ -148,15 +148,13 @@ public class Bot {
 			lastPos = me.position;
 		}
 		
-		bool flying = me.altitude > 0;
-		
 		//Set motors
 		point motors;
 		motors = turnTowards(pos);
 		
 		float d = distance2d(me.position, pos);
 		float moveMult = 0.2;
-		if (flying) moveMult = 0.05;
+		if (me.altitude > 0) moveMult = 0.05;
 		
 		if (land) {
 			if (d > 1) {
@@ -199,8 +197,7 @@ public class Bot {
 	}
 	
 	public point turnTowards(point pos) {
-		float dir = direction(pos);
-		float strength = dir / 45;
+		float strength = direction(pos) / 45;
 		point motors(strength * -1, strength);
 		return motors;
 	}
@@ -218,7 +215,7 @@ public class Bot {
 		
 		//check to see if we should also repair
 		o = radar(RepairCenter);
-		if (me.shieldLevel < 0.75 && distance2d(me.position, o.position) < 100) {
+		if (me.shieldLevel < 0.90 && distance2d(me.position, o.position) < 100) {
 			repair();
 		}
 	}
