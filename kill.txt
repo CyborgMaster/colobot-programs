@@ -5,6 +5,7 @@ extern void object::Kill()
 	Bot me(this);
 	me.hoverHeight = 10;
 	me.rechargeLevel = 0.35;
+	me.breakOnRefit = true;
 	
 	object item;
 	
@@ -12,13 +13,15 @@ extern void object::Kill()
 	
 	while (true)
 	{
+		message("Aquiring new target");
 		//try and find one a little ways away first
 		item = radar(alienType, 0, 360, 40);
 		if (item == null) item = radar(alienType);
 		if (item == null) break;
 		
 		while (item.isAlive()) {
-			me.follow(item, 32, 100);
+			if (!me.follow(item, 32, 100)) break;
+			
 			motor(1,1);
 			if (item != null) {
 				turn(direction(item.position));
@@ -45,7 +48,7 @@ extern void object::Kill()
 					message("Missed");
 					
 					//goto spot to set up next strafe
-					me.flyto(p, 2, false);
+					if (!me.flyto(p, 2, false)) break;
 				}
 			}
 		}

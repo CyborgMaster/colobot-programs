@@ -99,6 +99,7 @@ public class Bot {
 	//configurable parameters
 	float hoverHeight = 10;
 	float rechargeLevel = 0.25;
+	bool breakOnRefit = false;
 	
 	public void Bot (object _me) {
 		me = _me;
@@ -141,35 +142,44 @@ public class Bot {
 		drop();
 	}
 	
-	public void bot_goto(point pos, float tol) {
+	public bool bot_goto(point pos, float tol) {
 		if (isFlying()) {
-			flyto(pos, tol, true);
+			return flyto(pos, tol, true);
 		} else {
 			checkPower(rechargeLevel);
 			checkShields(0.5);
 			goto(pos);
+			
+			return true;
 		}
 	}
 	
-	public void flyto(point pos, float tollerance, bool land) {
+	public bool flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
-			checkTemperature();
-			checkPower(rechargeLevel);
-			checkShields(0.5);
+			bool refit;
+			refit = checkTemperature();
+			refit = checkPower(rechargeLevel) || refit;
+			refit = checkShields(0.5) || refit;
+			if (refit && breakOnRefit) return false;
+			
 			moveTo(pos, land, -1);
 			wait(0.1);
 		}
 		
 		motor(0,0);
+		return true;
 	}
 	
-	public void follow(object target, float dis, int matchZ) {
+	public bool follow(object target, float dis, int matchZ) {
 		
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
-			checkTemperature();
-			checkPower(rechargeLevel);
-			checkShields(0.5);
+			bool refit;
+			refit = checkTemperature();
+			refit = checkPower(rechargeLevel) || refit;
+			refit = checkShields(0.5) || refit;
+			if (refit && breakOnRefit) return false;
+			
 			point p = target.position;
 			p.z += 10;
 			moveTo(p, false, matchZ);
@@ -177,16 +187,20 @@ public class Bot {
 		}
 		
 		motor(0,0);
+		return true;
 	}
 	
-	void checkPower(float minLevel) {
+	bool checkPower(float minLevel) {
 		//check for out of power
 		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
 			message("Recharging...");
 			state = RECHARGING;
 			
 			object o = radar(PowerStation);
+			bool oldRefit = breakOnRefit;
+			breakOnRefit = false;
 			bot_goto(o.position, 1);
+			breakOnRefit = oldRefit;
 			while(me.energyCell.energyLevel < 1) {
 				wait(1);
 			}
@@ -198,16 +212,23 @@ public class Bot {
 			if (distance2d(me.position, o.position) < 100) {
 				checkShields(0.90);
 			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
-	void checkShields(float minLevel) {
+	bool checkShields(float minLevel) {
 		if (state == NORMAL && me.shieldLevel < minLevel) {
 			message("Repairing...");
 			state = REPAIRING;
 			
 			object o = radar(RepairCenter);
+			bool oldRefit = breakOnRefit;
+			breakOnRefit = false;
 			bot_goto(o.position, 1);
+			breakOnRefit = oldRefit;
 			while(me.shieldLevel < 1) {
 				wait(1);
 			}
@@ -220,10 +241,14 @@ public class Bot {
 			if (distance2d(me.position, o.position) < 100) {
 				checkPower(0.75);
 			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
-	void checkTemperature() {
+	bool checkTemperature() {
 		//check for jet overheat
 		if (state != COOLDOWN && me.temperature > 0.7) {
 			message("Cooldown...");
@@ -231,7 +256,10 @@ public class Bot {
 			state = COOLDOWN;
 			point safe = nearestSafeSpot(me.position, 50);
 			message("Found spot.");
+			bool oldRefit = breakOnRefit;
+			breakOnRefit = false;
 			flyto(safe, 5, true);
+			breakOnRefit = oldRefit;
 			motor(0,0);
 			jet(-1);
 			while(me.temperature > 0) {
@@ -239,7 +267,11 @@ public class Bot {
 			}
 			state = oldState;
 			message("Cooldown done.");
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public void moveTo(point pos, bool land, int matchZ) {
