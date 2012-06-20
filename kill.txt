@@ -35,8 +35,8 @@ extern void object::Kill()
 					motor(1, 0.7);
 				}
 				
-				fire(0.25);
-				wait(0.6); //wait for bullets to get there
+				fire(0.5);
+				wait(0.5); //wait for bullets to get there
 				
 				if (item.isAlive()) {
 					message("Missed");
