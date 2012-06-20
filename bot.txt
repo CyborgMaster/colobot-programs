@@ -14,7 +14,8 @@ public point alongDirection(point origin, float angle, float dis) {
 public class Bot {
 	//States
 	int NORMAL = 0;
-	int RECHARGING = 1;
+	int REPAIRING = 1;
+	int RECHARGING = 2;
 	
 	object me;
 	int state;
@@ -68,6 +69,7 @@ public class Bot {
 			flyto(pos, tol, true);
 		} else {
 			checkPower();
+			checkShields();
 			goto(pos);
 		}
 	}
@@ -75,6 +77,7 @@ public class Bot {
 	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			checkPower();
+			checkShields();
 			moveTo(pos, land, -1);
 			wait(0.1);
 		}
@@ -87,6 +90,7 @@ public class Bot {
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
 			checkPower();
+			checkShields();
 			moveTo(target.position, false, matchZ);
 			wait(0.1);
 		}
@@ -96,10 +100,18 @@ public class Bot {
 	
 	void checkPower() {
 		//check for out of power
-		if (state != RECHARGING && me.energyCell.energyLevel < 0.25) {
+		if (state < RECHARGING && me.energyCell.energyLevel < 0.25) {
 			message("Recharging...");
 			bot_recharge();
 			message("Recharging done.");
+		}
+	}
+	
+	void checkShields() {
+		if (state < REPAIRING && me.shieldLevel < 0.50) {
+			message("Repairing...");
+			repair();
+			message("Reparing done.");
 		}
 	}
 	
@@ -199,6 +211,18 @@ public class Bot {
 		object o = radar(PowerStation);
 		bot_goto(o.position, 1);
 		while(me.energyCell.energyLevel < 1) {
+			wait(1);
+		}
+		
+		state = NORMAL;
+	}
+	
+	public void repair() {
+		state = REPAIRING;
+		
+		object o = radar(RepairCenter);
+		bot_goto(o.position, 1);
+		while(me.shieldLevel < 1) {
 			wait(1);
 		}
 		
