@@ -4,6 +4,57 @@ public bool object::isAlive() {
 	return search(category, position) == this;
 }
 
+public point nearestSafeSpot(point origin, float minDis) {
+	int stride = 10;
+	int aliens[];
+	aliens[0] = AlienQueen;
+	aliens[1] = AlienAnt;
+	aliens[2] = AlienSpider;
+	aliens[3] = AlienWasp;
+	aliens[4] = AlienWorm;
+	
+	object o = search(aliens, origin);
+	if (o == null || distance2d(origin, o.position) > minDis) {
+		return origin;
+	} 
+	
+	point p;
+	
+	for (int side = 1; side < 50; side++) {
+		p.y = origin.y - stride * side;
+		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
+			object o = search(aliens, p);
+			if (o == null || distance2d(p, o.position) > minDis) {
+				return p;
+			} 
+		}
+		
+		p.x = origin.x + stride * side;
+		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
+			object o = search(aliens, p);
+			if (o == null || distance2d(p, o.position) > minDis) {
+				return p;
+			} 
+		}
+		 
+		p.y = origin.y + stride * side;
+		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
+			object o = search(aliens, p);
+			if (o == null || distance2d(p, o.position) > minDis) {
+				return p;
+			} 
+		}
+		
+		p.x = origin.x - stride * side;
+		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
+			object o = search(aliens, p);
+			if (o == null || distance2d(p, o.position) > minDis) {
+				return p;
+			} 
+		}
+	}
+}
+
 public point alongDirection(point origin, float angle, float dis) {
 	point p;
 	p.x = origin.x + cos(angle) * dis;
@@ -11,11 +62,34 @@ public point alongDirection(point origin, float angle, float dis) {
 	return p;
 }
 
+public object[] allAliens() {
+	object aliens[];
+	int alienCount = 0;
+	
+	ipf(10000);
+	for (int n = 0; true; n++) {
+		object a = retobject(n);
+		if (a == null) break;
+		
+		int c = a.category;
+		if (c == AlienQueen ||
+		    c == AlienAnt ||
+		    c == AlienSpider ||
+		    c == AlienWasp ||
+		    c == AlienWorm) {
+			aliens[alienCount++] = a;
+		}
+	}
+	
+	return aliens;
+}
+
 public class Bot {
 	//States
 	int NORMAL = 0;
 	int REPAIRING = 1;
 	int RECHARGING = 2;
+	int COOLDOWN = 3;
 	
 	object me;
 	int state;
@@ -76,6 +150,7 @@ public class Bot {
 	
 	public void flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
+			checkTemperature();
 			checkPower();
 			checkShields();
 			moveTo(pos, land, -1);
@@ -89,6 +164,7 @@ public class Bot {
 		
 		while(target != null && (distance(me.position, target.position) > dis ||
 		    abs(direction(target.position)) > 5)) {
+			checkTemperature();
 			checkPower();
 			checkShields();
 			moveTo(target.position, false, matchZ);
@@ -115,19 +191,26 @@ public class Bot {
 		}
 	}
 	
-	public void moveTo(point pos, bool land, int matchZ) {
-		
+	void checkTemperature() {
 		//check for jet overheat
-		if (me.temperature > 0.8) {
+		if (state != COOLDOWN && me.temperature > 0.7) {
+			int oldState = state;
+			state = COOLDOWN;
 			message("Cooldown...");
+			point safe = nearestSafeSpot(me.position, 50);
+			message("Found spot.");
+			flyto(safe, 5, true);
 			motor(0,0);
 			jet(-1);
 			while(me.temperature > 0) {
 				wait(0.1);
 			}
+			state = oldState;
 			message("Cooldown done.");
 		}
-		
+	}
+	
+	public void moveTo(point pos, bool land, int matchZ) {
 		
 		//check for stuck
 		if (distance(me.position, lastPos) < 0.25) {
