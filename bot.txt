@@ -261,26 +261,29 @@ public class Bot {
 		//Set motors
 		float ml, mr;
 		
-		float strength = direction(pos) / 45;
-		ml = strength * -1;
-		mr = strength;
-		
 		float d = distance2d(me.position, pos);
 		float moveMult = 0.2;
 		if (me.altitude > 0) moveMult = 0.05;
 		
 		if (land) {
 			if (d > 1) {
-				ml += d * moveMult;
-				mr += d * moveMult;
+				ml = d * moveMult;
+				mr = d * moveMult;
 			} else {
 				motor(0,0);
 				return;
 			}
 		} else { //if not landing, don't stop, fly through the point
-			ml += 1;
-			mr += 1;
+			ml = 1;
+			mr = 1;
 		}
+		
+		if (ml > 1) ml = 1;
+		if (mr > 1) mr = 1;
+		
+		float strength = direction(pos) / 45;
+		ml += strength * -1;
+		mr += strength;
 		
 		motor(ml, mr);
 		
