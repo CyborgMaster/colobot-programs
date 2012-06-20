@@ -215,6 +215,12 @@ public class Bot {
 		}
 		
 		state = NORMAL;
+		
+		//check to see if we should also repair
+		o = radar(RepairCenter);
+		if (me.shieldLevel < 0.75 && distance2d(me.position, o.position) < 100) {
+			repair();
+		}
 	}
 	
 	public void repair() {
@@ -227,5 +233,11 @@ public class Bot {
 		}
 		
 		state = NORMAL;
+		
+		//check to see if we should also recharge
+		o = radar(PowerStation);
+		if (me.energyCell.energyLevel < 0.75 && distance2d(me.position, o.position) < 100) {
+			bot_recharge();
+		}
 	}
 }
