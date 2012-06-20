@@ -167,7 +167,9 @@ public class Bot {
 			checkTemperature();
 			checkPower(0.25);
 			checkShields(0.5);
-			moveTo(target.position, false, matchZ);
+			point p = target.position;
+			p.z += 10;
+			moveTo(p, false, matchZ);
 			wait(0.1);
 		}
 		
@@ -295,7 +297,11 @@ public class Bot {
 		float fly;
 		
 		if (matchZ > 0 && d < matchZ) {
-			fly = pos.z - me.position.z + hoverHeight;
+			if (pos.z < alt + 2) {
+				fly = alt + 2 - me.position.z;
+			} else {
+				fly = pos.z - me.position.z;
+			}
 		} else {
 			fly = alt - me.position.z;
 			if (!land) {
