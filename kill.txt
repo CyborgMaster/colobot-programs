@@ -4,6 +4,7 @@ extern void object::Kill()
 	
 	Bot me(this);
 	me.hoverHeight = 10;
+	me.rechargeLevel = 0.35;
 	
 	object item;
 	
@@ -11,18 +12,20 @@ extern void object::Kill()
 	
 	while (true)
 	{
-		item = radar(alienType);
+		//try and find one a little ways away first
+		item = radar(alienType, 0, 360, 40);
+		if (item == null) item = radar(alienType);
 		if (item == null) break;
 		
 		while (item.isAlive()) {
-			me.follow(item, 32, 75);
+			me.follow(item, 32, 100);
 			motor(1,1);
 			if (item != null) {
 				turn(direction(item.position));
 				//turn(-10);
 				
 				//calculate the point to go to if we miss
-				point p = alongDirection(item.position, orientation, 50);
+				point p = alongDirection(item.position, orientation, 40);
 				
 				//find out which way the ant is facing (and is therefore likely to walk);
 				float face = item.orientation - orientation;
