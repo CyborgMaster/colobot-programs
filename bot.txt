@@ -13,16 +13,19 @@ public point nearestSafeSpot(point origin, float minDis) {
 	aliens[3] = AlienWasp;
 	aliens[4] = AlienWorm;
 	
-	object o = search(aliens, origin);
-	if (o == null || distance2d(origin, o.position) > minDis) {
-		return origin;
-	} 
+	if (flatground(origin, 2) > 1) {
+		object o = search(aliens, origin);
+		if (o == null || distance2d(origin, o.position) > minDis) {
+			return origin;
+		} 
+	}
 	
 	point p;
 	
 	for (int side = 1; side < 50; side++) {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
+			if (flatground(p, 2) < 1) continue;
 			object o = search(aliens, p);
 			if (o == null || distance2d(p, o.position) > minDis) {
 				return p;
@@ -31,6 +34,7 @@ public point nearestSafeSpot(point origin, float minDis) {
 		
 		p.x = origin.x + stride * side;
 		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
+			if (flatground(p, 2) < 1) continue;
 			object o = search(aliens, p);
 			if (o == null || distance2d(p, o.position) > minDis) {
 				return p;
@@ -39,6 +43,7 @@ public point nearestSafeSpot(point origin, float minDis) {
 		 
 		p.y = origin.y + stride * side;
 		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
+			if (flatground(p, 2) < 1) continue;
 			object o = search(aliens, p);
 			if (o == null || distance2d(p, o.position) > minDis) {
 				return p;
@@ -47,6 +52,7 @@ public point nearestSafeSpot(point origin, float minDis) {
 		
 		p.x = origin.x - stride * side;
 		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
+			if (flatground(p, 2) < 1) continue;
 			object o = search(aliens, p);
 			if (o == null || distance2d(p, o.position) > minDis) {
 				return p;
@@ -263,7 +269,7 @@ public class Bot {
 			message("Found spot.");
 			bool oldRefit = breakOnRefit;
 			breakOnRefit = false;
-			flyto(safe, 5, true);
+			flyto(safe, 1, true);
 			breakOnRefit = oldRefit;
 			motor(0,0);
 			jet(-1);
@@ -355,6 +361,6 @@ public class Bot {
 			}
 		}
 		
-		jet(fly * 0.2);
+		jet(fly * 0.1);
 	}
 }
