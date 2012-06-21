@@ -1,0 +1,15 @@
+extern void object::New()
+{
+	int n = 0;
+	while(true) {
+		object o = retobject(n);
+		if (o == this) {
+			message ("" + n);
+			return;
+		} else if (o == null) break;
+		
+		n++;
+	}
+	
+	message("not found");
+}

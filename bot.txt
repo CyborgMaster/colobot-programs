@@ -1,3 +1,10 @@
+/* Ideas
+ * Don't circle targets if we are really close to them
+ * better verticle aim on kill
+ * check recharge level based on distance to power station
+ * when repairing fly higher to avoid damage
+ */
+
 extern public void BotClass() {}
 
 public bool object::isAlive() {
