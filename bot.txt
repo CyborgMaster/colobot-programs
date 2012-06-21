@@ -172,8 +172,16 @@ public class Bot {
 	
 	public bool follow(object target, float dis, int matchZ) {
 		
-		while(target != null && (distance(me.position, target.position) > dis ||
-		    abs(direction(target.position)) > 5)) {
+		while(true) {
+			if (target == null or !target.isAlive()) {
+				return false;
+			}
+			
+			if (distance(me.position, target.position) < dis &&
+			    abs(direction(target.position)) < 5) {
+				return true;
+			}
+			
 			bool refit;
 			refit = checkTemperature();
 			refit = checkPower(rechargeLevel) || refit;
@@ -185,9 +193,6 @@ public class Bot {
 			moveTo(p, false, matchZ);
 			wait(0.1);
 		}
-		
-		motor(0,0);
-		return true;
 	}
 	
 	bool checkPower(float minLevel) {
