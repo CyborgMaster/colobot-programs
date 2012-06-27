@@ -20,52 +20,49 @@ public point nearestSafeSpot(point origin, float minDis) {
 	aliens[3] = AlienWasp;
 	aliens[4] = AlienWorm;
 	
-	if (flatground(origin, 2) > 1) {
-		object o = search(aliens, origin);
-		if (o == null || distance2d(origin, o.position) > minDis) {
-			return origin;
-		} 
-	}
+	if (isSpotSafe(origin, aliens, minDis)) {
+		return origin;
+	} 
 	
 	point p;
 	
 	for (int side = 1; side < 50; side++) {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
-			if (flatground(p, 2) < 1) continue;
-			object o = search(aliens, p);
-			if (o == null || distance2d(p, o.position) > minDis) {
+			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
 			} 
 		}
 		
 		p.x = origin.x + stride * side;
 		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
-			if (flatground(p, 2) < 1) continue;
-			object o = search(aliens, p);
-			if (o == null || distance2d(p, o.position) > minDis) {
+			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
 			} 
 		}
 		 
 		p.y = origin.y + stride * side;
 		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
-			if (flatground(p, 2) < 1) continue;
-			object o = search(aliens, p);
-			if (o == null || distance2d(p, o.position) > minDis) {
+			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
 			} 
 		}
 		
 		p.x = origin.x - stride * side;
 		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
-			if (flatground(p, 2) < 1) continue;
-			object o = search(aliens, p);
-			if (o == null || distance2d(p, o.position) > minDis) {
+			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
 			} 
 		}
 	}
+}
+
+bool isSpotSafe(point p, int[] enemies, float minDis) {
+	if (topo(p) < 0.5 || flatground(p, 2) < 1) return false;
+	object o = search(enemies, p);
+	if (o == null || distance2d(p, o.position) > minDis) {
+		return true;
+	} 
 }
 
 public point alongDirection(point origin, float angle, float dis) {
