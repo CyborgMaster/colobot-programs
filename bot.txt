@@ -209,12 +209,14 @@ public class Bot {
 	}
 	
 	bool checkPower(float minLevel) {
+		object o = radar(PowerStation);
+		if (o == null) return false;
+		
 		//check for out of power
 		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
 			message("Recharging...");
 			state = RECHARGING;
 			
-			object o = radar(PowerStation);
 			bool oldRefit = breakOnRefit;
 			breakOnRefit = false;
 			bot_goto(o.position, 1);
@@ -238,11 +240,13 @@ public class Bot {
 	}
 	
 	bool checkShields(float minLevel) {
+		object o = radar(RepairCenter);
+		if (o == null) return false;
+		
 		if (state == NORMAL && me.shieldLevel < minLevel) {
 			message("Repairing...");
 			state = REPAIRING;
 			
-			object o = radar(RepairCenter);
 			bool oldRefit = breakOnRefit;
 			breakOnRefit = false;
 			bot_goto(o.position, 1);

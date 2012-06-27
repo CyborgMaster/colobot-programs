@@ -1,0 +1,48 @@
+extern void object::harvestUOre() {
+	bool waitForOre = true;
+	int flag = GreenFlag;
+	
+	Bot me(this);
+	
+	object o;
+	while(true) {
+		if (waitForOre) {
+			//wait for ore
+			while(true) {
+				o = radar(UraniumOre);
+				if (o != null) break;
+				wait(0.25);
+			}
+		} else {
+			o = radar(UraniumOre);
+			if (o == null) {
+				message("No more!");
+				break;
+			}
+		}
+		
+		me.bot_goto(o.position, 2);
+		grab();
+		o = radar(NuclearPlant);
+		me.bot_goto(o.position, 1);
+		drop();
+		move(-2.5);
+		
+		//wait for conversion
+		while(true) {
+			o = radar(NuclearCell, 0, 180, 0, 5);
+			if (o != null) break;
+			wait(0.25);
+		}
+		
+		me.bot_goto(o.position, 2);
+		grab();
+		
+		//find a free spot
+		o = radar(flag);
+		point free = space(o.position, 0, 20, 2);
+		me.bot_goto(free, 1);
+		drop();
+	}
+}
+
