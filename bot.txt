@@ -360,8 +360,8 @@ public class Bot {
 			fly = alt - me.position.z;
 			if (!land) {
 				fly += hoverHeight;
-			} else if (d > 5 && d < 15) {
-				fly += (d - 5) * (hoverHeight / 10) ;
+			} else if (d > 5 && d < 5 + hoverHeight) {
+				fly += (d - 5);
 			} else if (d > 15) {
 				fly += hoverHeight;
 			} else { // d < 5
