@@ -1,6 +1,6 @@
 extern void object::harvestUOre() {
-	bool waitForOre = true;
-	int flag = GreenFlag;
+	bool waitForOre = false;
+	int flag = RedFlag;
 	
 	Bot me(this);
 	
@@ -23,19 +23,24 @@ extern void object::harvestUOre() {
 		
 		me.bot_goto(o.position, 2);
 		grab();
+		
+		//goto the front of the plant
 		o = radar(NuclearPlant);
-		me.bot_goto(o.position, 1);
+		point p = alongDirection(o.position, o.orientation, 10);
+		me.bot_goto(p, 1);
+		turn(direction(o.position));
+		move(2);
+		
 		drop();
 		move(-2.5);
 		
 		//wait for conversion
 		while(true) {
-			o = radar(NuclearCell, 0, 180, 0, 5);
-			if (o != null) break;
 			wait(0.25);
+			if (o.energyCell != null && o.energyCell.energyLevel == 1) break;
 		}
 		
-		me.bot_goto(o.position, 2);
+		move(2.5);
 		grab();
 		
 		//find a free spot
