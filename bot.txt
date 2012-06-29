@@ -226,7 +226,7 @@ public class Bot {
 			
 			//check to see if we should also repair
 			o = radar(RepairCenter);
-			if (distance2d(me.position, o.position) < 100) {
+			if (o != null && distance2d(me.position, o.position) < 100) {
 				checkShields(0.90);
 			}
 			
@@ -257,7 +257,7 @@ public class Bot {
 			
 			//check to see if we should also recharge
 			o = radar(PowerStation);
-			if (distance2d(me.position, o.position) < 100) {
+			if (o != null && distance2d(me.position, o.position) < 100) {
 				checkPower(0.75);
 			}
 			
