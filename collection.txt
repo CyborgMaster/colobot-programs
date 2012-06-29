@@ -1,13 +1,14 @@
 extern void object::collect() {
 	//CONSTANTS
-	int resource =  Titanium;
-	int flag = BlueFlag;
-	bool shouldWait = true;
+	int resource = Titanium;
+	int flag = YellowFlag;
+	bool shouldWait = false;
 	
 	Bot me(this);
+	me.hoverHeight = 100;
 	
 	object o = radar(flag);
-	me.bot_goto(o.position, 1);
+	me.bot_goto(o.position, 5);
 	
 	while(me.get(resource, 30, shouldWait)) {
 		me.deposit(flag);
