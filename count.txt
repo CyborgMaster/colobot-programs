@@ -1,0 +1,14 @@
+extern void object::Count()
+{
+	int type = UraniumOre;
+	
+	int count = 0;
+	int i = 0;
+	while (true) {
+		object o = retobject(i++);
+		if (o == null) break;
+		if (o.category == type) count++;
+	}
+	
+	message("Count: " + count);
+}
