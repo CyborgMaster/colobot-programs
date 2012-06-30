@@ -1,0 +1,228 @@
+extern void object::New()
+{
+	object target = radar(Titanium);
+	
+	while(true) {
+		if (distance2d(position, target.position) < 2) {
+			message("made it!");
+			return;
+		}
+		
+		object obstacle = radar(0, 0, 90, 0, 10);
+		if (obstacle != null && obstacle != target && distanceToTrajectory(obstacle.position) < radius(obstacle)) {
+			message("found obstacle " + obstacle.category + ". r: " + radius(obstacle));
+			
+			float a;
+			if (direction(obstacle.position) > 0) {
+				a = orientation - 90;
+			} else {
+				a = orientation + 90;
+			}
+			
+			while (a < 0) a += 360;
+			while (a > 360) a -= 360;
+			//message("o " + orientation +", a " + a);
+			
+			point p = alongDirection(obstacle.position, a, radius(target) + 3);
+			
+			//message("going to " + p);
+			
+			while(distance2d(position, p) > 2) {
+				motors(p);
+				wait(0.1);
+			}
+			message("went around");
+		}
+		
+		
+		motors(target.position);
+		wait(0.1);
+	}
+}
+
+float object::distanceToTrajectory(point p) {
+	return abs(sin(direction(p)) * distance(position, p));
+}
+
+
+void object::motors(point pos) {
+	
+	//Set motors
+	float ml, mr;
+	
+	float d = distance2d(position, pos);
+	float moveMult = 0.5;
+	if (altitude > 0) moveMult = 0.05;
+	
+	ml = d * moveMult;
+	mr = d * moveMult;
+	
+	if (ml > 1) ml = 1;
+	if (mr > 1) mr = 1;
+	
+	float strength = direction(pos) / 45;
+	ml += strength * -1;
+	mr += strength;
+	
+	motor(ml, mr);
+}
+
+float radius(object obj) {
+	float radii[];
+	
+	radii[2] = 32.25; //Gantry Crane
+	radii[3] = 20.00; //Space Ship; Top Width of 8.25 
+	radii[4] = 03.00; //Derrick
+	radii[5] = 06.00; //Bot Factory
+	radii[6] = 06.00; //Power Station
+	radii[7] = 05.00; //Ore Converter
+	radii[8] = 05.25; //Repair Center
+	radii[9] = 02.75; //Defense Tower
+	radii[10] = 00.00; //Alien Nest; Organic Material/hatchery?, however it is probably holding Orga mater
+	radii[11] = 03.75; //Research Center
+	radii[12] = 02.75; //Radar Station
+	radii[13] = 04.00; //Power Plant; Power Cell Factory
+	radii[14] = 05.25; //Auto Lab
+	radii[15] = 07.00; //Nuclear Power Station
+	radii[16] = 00.00; //Start Area; platform
+	radii[17] = 00.00; //Goal Area;  platform
+	radii[18] = 02.75; //Information exchange post
+	radii[19] = 06.50; //Power Captor
+	radii[20] = 07.75; //Target "the target stand" (+)==<  looking thing; 03.25 at bace
+	radii[21] = 00.00; //Target2 "the actual Brass + Target"
+	radii[22] = 04.50; //Vault
+	radii[23] = 18.75; //Huston Mission Control
+	
+	radii[31] = 01.50; //Titanium Ore
+	radii[32] = 01.50; //Uranium Ore
+	radii[33] = 01.50; //Titanium
+	radii[34] = 01.50; //Power Cell
+	radii[35] = 01.50; //Nuclear Power Cell
+	radii[36] = 01.50; //Orga Mater
+	radii[37] = 01.50; //Black Box
+	radii[38] = 01.50; //TNT Brick
+	
+	radii[50] = 00.00; //green cross   -> energy deposit.
+	radii[51] = 00.00; //red cross     -> titanium ore.
+	radii[52] = 00.00; //yellow circle -> uranium ore.
+	
+	radii[60] = 02.00; //Mine
+	radii[61] = 01.75; //Firework
+	radii[63] = 02.00; //Rocket Back Pack
+	
+	radii[70] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[71] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[72] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[73] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[74] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[75] = 00.00; //Small Plant; Tropica
+	radii[76] = 00.00; //Small Plant; Tropica
+	radii[77] = 00.00; //Small Plant; Tropica
+	radii[80] = 02.75; //Large Plant; Tropica
+	radii[81] = 02.50; //Large Plant; Tropica
+	radii[82] = 02.50; //Large Plant; Tropica
+	radii[83] = 03.00; //Large Plant; Tropica
+	radii[84] = 02.50; //Large Plant; Tropica
+	radii[85] = 01.75; //Plant; Volcano
+	radii[86] = 01.75; //Plant; Volcano
+	radii[87] = 01.75; //Plant, Tall; Volcano
+	radii[88] = 01.75; //Plant; Volcano
+	radii[89] = 01.75; //Plant; Volcano
+	radii[90] = 01.75; //Tree; Earth
+	radii[91] = 02.50; //Tree; Earth
+	radii[92] = 02.75; //Tree; Earth
+	radii[93] = 03.75; //Tree; Earth
+	
+	radii[100] = 02.50; //Practice Bot
+	
+	radii[110] = 02.50; //Wheeled Grabber
+	radii[111] = 02.50; //Tracked Grabber
+	radii[112] = 02.50; //Winged Grabber
+	radii[113] = 02.50; //Legged Grabber
+	
+	radii[120] = 02.50; //Wheeled Shooter
+	radii[121] = 02.50; //Tracked Shooter
+	radii[122] = 02.50; //Winged Shooter
+	radii[123] = 02.50; //Legged Shooter
+	
+	radii[130] = 02.50; //Wheeled Orga Shooter
+	radii[131] = 02.50; //Tracked Orga Shooter
+	radii[132] = 02.50; //Winged Orga Shooter
+	radii[133] = 02.50; //Legged Orga Shooter
+	
+	radii[140] = 02.50; //Wheeled Sniffer
+	radii[141] = 02.50; //Tracked Sniffer
+	radii[142] = 02.50; //Winged Sniffer
+	radii[143] = 02.50; //Legged Sniffer
+	
+	radii[200] = 03.00; //Thumper
+	radii[201] = 03.00; //Phazer Shooter35
+	radii[202] = 03.00; //Recycler
+	radii[203] = 03.00; //Shielder; Height 3.00 when not active
+	radii[210] = 02.50; //Subber
+	radii[211] = 02.50; //Target Bot
+	radii[250] = 00.00; //Way Point
+	
+	radii[260] = 00.00; //Blue Flag
+	radii[261] = 00.00; //Red Flag
+	radii[262] = 00.00; //Green Flag
+	radii[263] = 00.00; //Yellow Flag
+	radii[264] = 00.00; //Purple Flag
+	radii[270] = 01.50; //KeyA - Blue
+	radii[271] = 01.50; //KeyB - Red
+	radii[272] = 01.50; //KeyC - Green
+	radii[273] = 01.50; //KeyD - Yellow
+	
+	radii[300] = 01.75; //Me
+	radii[302] = 01.75; //Tech (looks a lot like "Me" in some levels)
+	radii[400] = 02.25; //Barrier-Short; 1.5 width (about radi-of bot)
+	radii[401] = 03.50; //Barrier-Long; 1.5 width (about radi-of bot)
+	
+	radii[500] = 06.25; //Alien Queen
+	radii[501] = 02.25; //Alien Egg
+	radii[502] = 02.25; //Alien Ant
+	radii[503] = 02.00; //Alien Spider
+	radii[504] = 02.25; //Alien Wasp
+	radii[505] = 00.00; //Alien Worm
+	
+	radii[600] = 03.00; //A Wreckage wild card! for Recyclables
+	radii[600] = 02.00; //Wreckage; Whelled Grabber, Recyclable
+	radii[601] = 02.00; //Wreckage; Sunken Whelled Grabber, Recyclable
+	radii[602] = 03.00; //Wreckage; Tracked Shooter, Recyclable
+	radii[603] = 03.00; //Wreckage; Sunken Tracked Shooter, Recyclable
+	radii[603] = 02.50; //Wreckage; Sunken Recyceler, Recyclable
+	radii[605] = 02.50; //Wreckage; Recyceler, Recyclable
+	
+	radii[606] = 06.00; //Ruin; Bot Factory
+	radii[607] = 02.25; //Ruin; Ore Converter Door
+	radii[608] = 02.00; //Ruin; Support, C shaped hunk of mettel
+	radii[609] = 02.25; //Ruin; Brick like, Radar Station Base
+	radii[610] = 05.00; //Ruin; Ore Converter
+	radii[611] = 13.25; //Ruin; Space Ship Bace
+	radii[612] = 08.50; //Ruin; Space Ship Top
+	
+	radii[700] = 02.00; //Crystal; Crystalium
+	radii[701] = 02.50; //Crystal; Crystalium
+	radii[702] = 02.75; //Crystal; Crystalium
+	radii[703] = 04.50; //Crystal; Crystalium
+	
+	radii[710] = 04.25; //Green Mega Stalk; Stranve Plant, Small
+	radii[711] = 03.50; //Green Mega Stalk; Stranve Plant, Small
+	radii[712] = 03.25; //Green Mega Stalk; Stranve Plant, Small
+	radii[713] = 05.25; //Green Mega Stalk; Stranve Plant, Med
+	radii[714] = 07.25; //Green Mega Stalk; Stranve Plant, Large
+	radii[715] = 07.25; //Green Mega Stalk; Stranve Plant, Large with Green Shield like apperatice
+	radii[715] = 22.00; //#715's Green Shield (affects flyers ability to fly); you cannot fly over it
+	
+	radii[731] = 02.00; //Mushroom; non corrosive
+	radii[732] = 02.00; //Mushroom; corrosive
+	
+	radii[900] = 05.02; //Lunar Lander; Derelict of Apollo Mission
+	radii[901] = 03.25; //Lunar Roving Vehicle
+	radii[902] = 00.00; //American flag; Derelict of Apollo Mission
+	radii[903] = 01.75; //Inverted Satelite Dish; Derelict of Apollo Mission
+	radii[904] = 02.00; //Satelite Dish; Derelict of Apollo Mission
+	radii[910] = 03.75; //Home
+	
+	return radii[obj.category];
+}
