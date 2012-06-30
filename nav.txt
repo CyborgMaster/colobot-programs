@@ -2,14 +2,25 @@ extern void object::New()
 {
 	object target = radar(Titanium);
 	
+	moveTo(target.position, 2, target);
+	message("made it!");
+}
+
+void object::moveTo(point goal, float dis, object curObstacle) {
 	while(true) {
-		if (distance2d(position, target.position) < 2) {
-			message("made it!");
+		motors(goal);
+		wait(0.1);
+		
+		if (abs(direction(goal)) > 5) continue;
+		
+		if (distance2d(position, goal) < dis) {
 			return;
 		}
 		
-		object obstacle = radar(0, 0, 90, 0, 10);
-		if (obstacle != null && obstacle != target && distanceToTrajectory(obstacle.position) < radius(obstacle)) {
+		object obstacle = radar(0, 0, 45, 0, 30);
+		if (obstacle != null && obstacle != curObstacle && 
+		distance2d(position, obstacle.position) < distance2d(position, goal) &&
+		distanceToTrajectory(obstacle.position) < radius(obstacle)) {
 			message("found obstacle " + obstacle.category + ". r: " + radius(obstacle));
 			
 			float a;
@@ -23,20 +34,13 @@ extern void object::New()
 			while (a > 360) a -= 360;
 			//message("o " + orientation +", a " + a);
 			
-			point p = alongDirection(obstacle.position, a, radius(target) + 3);
+			point p = alongDirection(obstacle.position, a, radius(obstacle) + 0.25);
 			
 			//message("going to " + p);
 			
-			while(distance2d(position, p) > 2) {
-				motors(p);
-				wait(0.1);
-			}
+			moveTo(p, 1, obstacle);
 			message("went around");
 		}
-		
-		
-		motors(target.position);
-		wait(0.1);
 	}
 }
 
@@ -60,7 +64,7 @@ void object::motors(point pos) {
 	if (ml > 1) ml = 1;
 	if (mr > 1) mr = 1;
 	
-	float strength = direction(pos) / 45;
+	float strength = direction(pos) / 30;
 	ml += strength * -1;
 	mr += strength;
 	
@@ -71,7 +75,7 @@ float radius(object obj) {
 	float radii[];
 	
 	radii[2] = 32.25; //Gantry Crane
-	radii[3] = 20.00; //Space Ship; Top Width of 8.25 
+	radii[3] = 02.00; //Space Ship; Bottom Width of 20.00, Top Width of 8.25 
 	radii[4] = 03.00; //Derrick
 	radii[5] = 06.00; //Bot Factory
 	radii[6] = 06.00; //Power Station
