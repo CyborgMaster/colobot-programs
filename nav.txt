@@ -1,9 +1,39 @@
-extern void object::New()
+extern void object::Pathfinding()
 {
 	object target = radar(Titanium);
 	
-	moveTo(target.position, 2, target);
-	message("made it!");
+	pathTo(target.position);
+	//moveTo(target.position, 2, target);
+	//message("made it!");
+}
+
+bool isBlocked(point p) {
+	object obstacle = radar(0, 0, 360, 0, 20);
+	if (obstacle == null) return true;
+	
+	return distance2d(p, obstacle.position) < radius(obstacle);
+}
+
+void object::pathTo(point dest) {
+	point cur = position;
+	
+	while (distance2d(cur, dest) < 2) {
+		point next = alongDirection(angle(cur, dest), 1);
+		if (isBlocked(next)) return;
+		produce(next, 0, WayPoint, "");
+		cur = next;
+		wait(1);
+	}
+}
+
+float angle(point pointA, point pointB)
+{
+	float offset = 90;
+	if (deltaY(pointA, pointB) > 0)
+	{
+		offset = 270;
+	}
+	return offset + atan((pointB.x - pointA.x) / (pointB.y - pointA.y));
 }
 
 void object::moveTo(point goal, float dis, object curObstacle) {
@@ -11,37 +41,69 @@ void object::moveTo(point goal, float dis, object curObstacle) {
 		motors(goal);
 		wait(0.1);
 		
+		//only check for obstacles if we are facing the goal
 		if (abs(direction(goal)) > 5) continue;
 		
+		//check if we've made it
 		if (distance2d(position, goal) < dis) {
 			return;
 		}
 		
-		object obstacle = radar(0, 0, 45, 0, 30);
-		if (obstacle != null && obstacle != curObstacle && 
-		distance2d(position, obstacle.position) < distance2d(position, goal) &&
-		distanceToTrajectory(obstacle.position) < radius(obstacle)) {
-			message("found obstacle " + obstacle.category + ". r: " + radius(obstacle));
+		object obstacle = radar(0, 0, 180, 0, 20);
+		if (obstacle == null || obstacle == curObstacle) continue;
+		
+		float r = radius(obstacle);
+		float d2Path = distanceToTrajectory(obstacle.position);
+		
+		if (distance2d(position, obstacle.position) < distance2d(position, goal) &&
+		 d2Path < r) {
 			
-			float a;
+			message("found obstacle " + obstacle.category + ". r: " + r);
+			
+			float a1, a2, a3;
 			if (direction(obstacle.position) > 0) {
-				a = orientation - 90;
+				a1 = normalize(orientation - 135);
+				a2 = normalize(orientation - 90);
+				a3 = normalize(orientation - 45);
 			} else {
-				a = orientation + 90;
+				a1 = normalize(orientation + 135);
+				a2 = normalize(orientation + 90);
+				a3 = normalize(orientation + 45);
 			}
 			
-			while (a < 0) a += 360;
-			while (a > 360) a -= 360;
-			//message("o " + orientation +", a " + a);
+			point waypoints[];
 			
-			point p = alongDirection(obstacle.position, a, radius(obstacle) + 0.25);
+			if (d2Path < r / 2) {
+				waypoints[0] = alongDirection(obstacle.position, a1, r * 1.25);
+				waypoints[1] = alongDirection(obstacle.position, a2, r * 1.25);
+				waypoints[2] = alongDirection(obstacle.position, a3, r * 1.25);
+			} else {
+				waypoints[0] = alongDirection(obstacle.position, a2, r * 1.25);
+			}
 			
-			//message("going to " + p);
-			
-			moveTo(p, 1, obstacle);
+			followWaypoints(waypoints, obstacle);
 			message("went around");
 		}
 	}
+}
+
+float normalize(float a) {
+	while (a < 0) a += 360;
+	while (a > 360) a -= 360;
+	return a;
+}
+
+void followWaypoints(point[] p, object curObstacle) {
+	/*
+	for (int i = 0; i < sizeof(p); i++) {
+		produce(p[i], 0, WayPoint, "");
+	}
+	*/
+	
+	for (int i = 0; i < sizeof(p); i++) {
+		moveTo(p[i], 2, curObstacle);
+	}
+	
 }
 
 float object::distanceToTrajectory(point p) {
@@ -55,7 +117,7 @@ void object::motors(point pos) {
 	float ml, mr;
 	
 	float d = distance2d(position, pos);
-	float moveMult = 0.5;
+	float moveMult = 0.33;
 	if (altitude > 0) moveMult = 0.05;
 	
 	ml = d * moveMult;
@@ -64,7 +126,7 @@ void object::motors(point pos) {
 	if (ml > 1) ml = 1;
 	if (mr > 1) mr = 1;
 	
-	float strength = direction(pos) / 30;
+	float strength = direction(pos) / 45;
 	ml += strength * -1;
 	mr += strength;
 	
@@ -100,7 +162,7 @@ float radius(object obj) {
 	radii[31] = 01.50; //Titanium Ore
 	radii[32] = 01.50; //Uranium Ore
 	radii[33] = 01.50; //Titanium
-	radii[34] = 01.50; //Power Cell
+	radii[34] = 01.75; //Power Cell
 	radii[35] = 01.50; //Nuclear Power Cell
 	radii[36] = 01.50; //Orga Mater
 	radii[37] = 01.50; //Black Box
@@ -114,11 +176,11 @@ float radius(object obj) {
 	radii[61] = 01.75; //Firework
 	radii[63] = 02.00; //Rocket Back Pack
 	
-	radii[70] = 01.75; //Plant; Earth, Tropica, Centaury
-	radii[71] = 01.75; //Plant; Earth, Tropica, Centaury
-	radii[72] = 01.75; //Plant; Earth, Tropica, Centaury
-	radii[73] = 01.75; //Plant; Earth, Tropica, Centaury
-	radii[74] = 01.75; //Plant; Earth, Tropica, Centaury
+	radii[70] = 02.00; //Plant; Earth, Tropica, Centaury
+	radii[71] = 02.00; //Plant; Earth, Tropica, Centaury
+	radii[72] = 02.00; //Plant; Earth, Tropica, Centaury
+	radii[73] = 02.00; //Plant; Earth, Tropica, Centaury
+	radii[74] = 02.00; //Plant; Earth, Tropica, Centaury
 	radii[75] = 00.00; //Small Plant; Tropica
 	radii[76] = 00.00; //Small Plant; Tropica
 	radii[77] = 00.00; //Small Plant; Tropica
