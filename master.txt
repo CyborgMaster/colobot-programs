@@ -1,0 +1,100 @@
+extern void object::Master() {}
+
+public class SlaveInfo {
+	static int FREE = 0;
+	static int BUSY = 1;
+	
+	object bot;
+	int status;
+	int command;
+	
+	void SlaveInfo(object slaveBot) {
+		bot = slaveBot;
+		status = FREE;
+		command = -1;
+	}
+}
+
+public class CommandCenter {
+	static SlaveInfo slaves[] = null;
+	
+	public SlaveInfo registerSlave(object slaveBot) {
+		//check to see if we already have this slave
+		for (int i = 0; i < sizeof(slaves); i++) {
+			if (slaves[i].bot == slaveBot) {
+				message("Slave tried to register twice", DisplayWarning);
+				return slaves[i];
+			}
+		}
+		
+		//register new slave
+		SlaveInfo newInfo = new SlaveInfo(slaveBot);
+		slaves[sizeof(slaves)] = newInfo;
+		return newInfo;
+	}
+	
+	synchronized SlaveInfo getFreeSlave(int type) {
+		for (int i = 0; i < sizeof(slaves); i++) {
+			if(slaves[i].status == 0 /*FREE*/ && slaves[i].bot.category == type) return slaves[i];
+		}
+		
+		return null;
+	}
+}
+
+public void object::buildBot(int type, string name){
+	Bot me(this);
+	me.get(Titanium, 0, false);
+	
+	object o = radar(BotFactory);
+	if (o == null) {
+		message("No Robot Factory", DisplayError);
+		return;
+	}
+	
+	me.bot_goto(o.position, 1);
+	drop();
+	move(-5);
+	
+	message("Build '" + name + "'");
+	
+	point p = position;
+	me.get(PowerCell, 0, false);
+	me.bot_goto(p, 1);
+	
+	do {
+		o = radar(type, 0, 360, 0, 7); 
+	} while (o == null);
+	
+	me.bot_goto(o.position, 1);
+	drop();
+	
+	move(-5);
+	turn(90);
+	move(5);
+	
+	message("Load and run program 'Slave.txt' on new bot");
+}
+
+public void object::research(string name) {
+	Bot me(this);
+	
+	object o = radar(ResearchCenter);
+	if (o == null) {
+		message("No Research Center", DisplayError);
+		return;
+	}
+	
+	if (o.energyCell == null || o.energyCell.energyLevel < 1) {
+		message("Powering Research Center", DisplayInfo);
+		me.get(PowerCell, 0, false);
+		me.bot_goto(o.position, 1);
+		drop();
+	}
+	
+	message("Research '" + name + "'");
+	
+	while (o.energyCell.energyLevel > 0.01) {
+		wait(1);
+	}
+}

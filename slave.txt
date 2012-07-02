@@ -1,0 +1,15 @@
+extern void object::Slave() 
+{
+	CommandCenter command = new CommandCenter();
+	object myThis = this;
+	SlaveInfo info = command.registerSlave(myThis);
+	
+	int task;
+	while(true) {
+		task = info.command;
+		if (task >= 0) break;
+		wait(1); 
+	}
+	
+	message("Save got command: " + task);
+}
