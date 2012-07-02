@@ -44,8 +44,9 @@ public class CommandCenter {
 }
 
 public void object::buildBot(int type, string name){
-	Bot me(this);
-	me.get(Titanium, position, 0, false);
+	object that = this;
+	Bot me(that);
+	me.get(Titanium, that.position, 0, false);
 	
 	object o = radar(BotFactory);
 	if (o == null) {
@@ -60,7 +61,7 @@ public void object::buildBot(int type, string name){
 	message("Build '" + name + "'");
 	
 	point p = position;
-	me.get(PowerCell, position, 0, false);
+	me.get(PowerCell, that.position, 0, false);
 	me.bot_goto(p, 1);
 	
 	do {
@@ -78,8 +79,8 @@ public void object::buildBot(int type, string name){
 }
 
 public void object::research(string name) {
-	object myThis = this;
-	Bot me(myThis);
+	object that = this;
+	Bot me(that);
 	
 	object o = radar(ResearchCenter);
 	if (o == null) {
@@ -89,7 +90,7 @@ public void object::research(string name) {
 	
 	if (o.energyCell == null || o.energyCell.energyLevel < 1) {
 		message("Powering Research Center", DisplayInfo);
-		me.get(PowerCell, position, 0, false);
+		me.get(PowerCell, that.position, 0, false);
 		me.bot_goto(o.position, 1);
 		drop();
 	}
