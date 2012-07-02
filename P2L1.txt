@@ -1,7 +1,29 @@
 extern void object::P2L1()
 {
+	CommandCenter command = new CommandCenter();
+	
+	
 	buildBuilding(ResearchCenter, "Research Center");
 	research("Winged Bots");
 	buildBuilding(BotFactory, "Bot Factory");
 	buildBot(WingedGrabber, "Winged Grabber");
+	SlaveInfo slave = command.waitFreeSlave(WingedGrabber);
+	
+	//command the slave to get the ore
+	object o = radar(SpaceShip);
+	slave.params[0] = TitaniumOre; //category
+	slave.params[1] = o.position.x; //drop x
+	slave.params[2] = o.position.y; //drop y
+	slave.params[3] = 0; //shouldn't wait;
+	slave.command = 1; //collect
+	
+	//go to the ship
+	goto(o.position);
+	
+	//wait for the slave to finish
+	while (slave.status == slave.BUSY) {
+		wait(1);
+	}
+	
+	message("Board spaceship and take off!");
 }

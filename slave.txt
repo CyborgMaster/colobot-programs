@@ -1,5 +1,9 @@
 extern void object::Slave() 
 {
+	//back out of the bot factory
+	move(-7);
+	
+	//register as a slave
 	CommandCenter command = new CommandCenter();
 	object myThis = this;
 	SlaveInfo info = command.registerSlave(myThis);
@@ -16,6 +20,7 @@ extern void object::Slave()
 	info.command = 0;
 	task = 1;
 	performTask(task, info.params);
+	//mark free
 	info.status = info.FREE;
 }
 
@@ -33,7 +38,7 @@ void object::collect(float[] params) {
 	point dropOff = new point(params[1], params[2]);
 	bool shouldWait = (params[3] != 0);
 	Bot me(this);
-	me.hoverHeight = 100;
+	me.hoverHeight = 5;
 	
 	while(me.get(resource, dropOff, 30, shouldWait)) {
 		me.deposit(dropOff);

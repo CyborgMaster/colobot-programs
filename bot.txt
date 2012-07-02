@@ -156,7 +156,7 @@ public class Bot {
 		}
 		
 		//find a free spot
-		point free = space(dropPoint, 0, 20, 2);
+		point free = space(dropPoint, 1, 30, 2);
 		bot_goto(free, 1);
 		drop();
 	}
