@@ -11,5 +11,6 @@ extern void object::Slave()
 		wait(1); 
 	}
 	
-	message("Save got command: " + task);
+	info.command = 0;
+	performTask(task, info.params);
 }

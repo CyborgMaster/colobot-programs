@@ -124,11 +124,12 @@ public class Bot {
 		  me.category == WingedOrgaShooter;
 	}
 	
-	public bool get(int category, float minDistance, bool shouldWait) {
+	public bool get(int category, point searchCenter, float minDistance, bool shouldWait) {
 		object o;
+		message("getting");
 		
 		while (true) {
-			o = radar(category, 0, 360, minDistance);
+			o = search(category, searchCenter, minDistance);
 			if (o != null) break;
 			if (!shouldWait) return false;
 			wait(0.25);
@@ -139,15 +140,14 @@ public class Bot {
 		return true;
 	}
 	
-	public void deposit(int flag) {
+	public void deposit(point dropPoint) {
 		if (me.load == null) {
 			message("Nothing to deposit!");
 			return;
 		}
 		
 		//find a free spot
-		object o = radar(flag);
-		point free = space(o.position, 0, 20, 2);
+		point free = space(dropPoint, 0, 20, 2);
 		bot_goto(free, 1);
 		drop();
 	}
