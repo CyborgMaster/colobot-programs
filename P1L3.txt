@@ -12,5 +12,12 @@ extern void object::P1L3() {
 		wait(1);
 	}
 	
-	slave.command = 1;
+	//command the slave to get the black box
+	object o = radar(SpaceShip);
+	slave.params[0] = BlackBox; //category
+	slave.params[1] = o.position.x; //drop x
+	slave.params[2] = o.position.y; //drop y
+	slave.params[3] = 0; //shouldn't wait;
+	slave.command = 1; //collect
+	
 }

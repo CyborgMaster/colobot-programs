@@ -7,6 +7,7 @@ public class SlaveInfo {
 	object bot;
 	int status;
 	int command;
+	float[] params;
 	
 	void SlaveInfo(object slaveBot) {
 		bot = slaveBot;
@@ -44,7 +45,7 @@ public class CommandCenter {
 
 public void object::buildBot(int type, string name){
 	Bot me(this);
-	me.get(Titanium, 0, false);
+	me.get(Titanium, position, 0, false);
 	
 	object o = radar(BotFactory);
 	if (o == null) {
@@ -59,7 +60,7 @@ public void object::buildBot(int type, string name){
 	message("Build '" + name + "'");
 	
 	point p = position;
-	me.get(PowerCell, 0, false);
+	me.get(PowerCell, position, 0, false);
 	me.bot_goto(p, 1);
 	
 	do {
@@ -77,7 +78,8 @@ public void object::buildBot(int type, string name){
 }
 
 public void object::research(string name) {
-	Bot me(this);
+	object myThis = this;
+	Bot me(myThis);
 	
 	object o = radar(ResearchCenter);
 	if (o == null) {
@@ -87,7 +89,7 @@ public void object::research(string name) {
 	
 	if (o.energyCell == null || o.energyCell.energyLevel < 1) {
 		message("Powering Research Center", DisplayInfo);
-		me.get(PowerCell, 0, false);
+		me.get(PowerCell, position, 0, false);
 		me.bot_goto(o.position, 1);
 		drop();
 	}
