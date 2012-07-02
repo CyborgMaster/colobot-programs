@@ -41,6 +41,15 @@ public class CommandCenter {
 		
 		return null;
 	}
+	
+	synchronized SlaveInfo waitFreeSlave(int type) {
+		SlaveInfo slave;
+		while(true) {
+			slave = getFreeSlave(type);
+			if (slave != null) return slave;
+			wait(1);
+		}
+	}
 }
 
 public void object::buildBot(int type, string name){

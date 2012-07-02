@@ -3,14 +3,7 @@ extern void object::P1L3() {
 	
 	research("Tracked Bots");
 	buildBot(TrackedGrabber, "Tracked Grabber");
-	
-	//wait for slave script to be run
-	SlaveInfo slave;
-	while(true) {
-		slave = command.getFreeSlave(TrackedGrabber);
-		if (slave != null) break;
-		wait(1);
-	}
+	SlaveInfo slave = command.waitFreeSlave(TrackedGrabber);
 	
 	//command the slave to get the black box
 	object o = radar(SpaceShip);
