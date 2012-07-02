@@ -52,6 +52,28 @@ public class CommandCenter {
 	}
 }
 
+public void object::buildBuilding(int type, string name) {
+	object that = this;
+	Bot me(that);
+	me.get(Titanium, that.position, 0, false);
+	
+	object o = radar(SpaceShip);
+	point p = space(o.position, 8, 50, 8);
+	
+	me.bot_goto(p, 1);
+	drop();
+	
+	float a = angle(o.position, p);
+	p = alongDirection(p, a, 8);
+	me.bot_goto(p, 1);
+	
+	message("Build building '" + name + "' while standing here");
+	
+	do {
+		o = radar(type, 0, 360, 0, 10);
+	} while (o == null);
+}
+
 public void object::buildBot(int type, string name){
 	object that = this;
 	Bot me(that);
@@ -101,6 +123,9 @@ public void object::research(string name) {
 		message("Powering Research Center", DisplayInfo);
 		me.get(PowerCell, that.position, 0, false);
 		me.bot_goto(o.position, 1);
+		motor(1,1);
+		wait(0.5);
+		motor(0,0);
 		drop();
 	}
 	

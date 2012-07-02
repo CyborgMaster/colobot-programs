@@ -1,0 +1,7 @@
+extern void object::P2L1()
+{
+	buildBuilding(ResearchCenter, "Research Center");
+	research("Winged Bots");
+	buildBuilding(BotFactory, "Bot Factory");
+	buildBot(WingedGrabber, "Winged Grabber");
+}

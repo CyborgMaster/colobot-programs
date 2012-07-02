@@ -65,6 +65,16 @@ bool isSpotSafe(point p, int[] enemies, float minDis) {
 	} 
 }
 
+public float angle(point pointA, point pointB)
+{
+	float offset = 0;
+	if ((pointB.x - pointA.x) < 0)
+	{
+		offset = 180;
+	}
+	return offset + atan((pointB.y - pointA.y) / (pointB.x - pointA.x));
+}
+
 public point alongDirection(point origin, float angle, float dis) {
 	point p;
 	p.x = origin.x + cos(angle) * dis;
