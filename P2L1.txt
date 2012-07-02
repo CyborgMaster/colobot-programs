@@ -12,10 +12,8 @@ extern void object::P2L1()
 	//command the slave to get the ore
 	object o = radar(SpaceShip);
 	slave.params[0] = TitaniumOre; //category
-	slave.params[1] = o.position.x; //drop x
-	slave.params[2] = o.position.y; //drop y
-	slave.params[3] = 0; //shouldn't wait;
-	slave.command = 1; //collect
+	slave.params[1] = 4; //count
+	slave.command = 2; //load
 	
 	//go to the ship
 	goto(o.position);
