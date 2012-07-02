@@ -126,7 +126,6 @@ public class Bot {
 	
 	public bool get(int category, point searchCenter, float minDistance, bool shouldWait) {
 		object o;
-		message("getting");
 		
 		while (true) {
 			o = search(category, searchCenter, minDistance);
