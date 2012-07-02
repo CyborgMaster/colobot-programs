@@ -20,4 +20,13 @@ extern void object::P1L3() {
 	slave.params[3] = 0; //shouldn't wait;
 	slave.command = 1; //collect
 	
+	//go to the ship
+	goto(o.position);
+	
+	//wait for the slave to finish
+	while (slave.status == slave.BUSY) {
+		wait(1);
+	}
+	
+	message("Board spaceship and take off!");
 }
