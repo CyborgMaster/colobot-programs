@@ -322,13 +322,8 @@ public class Bot {
 		if (me.altitude > 0) moveMult = 0.05;
 		
 		if (land) {
-			if (d > 1) {
-				ml = d * moveMult;
-				mr = d * moveMult;
-			} else {
-				motor(0,0);
-				return;
-			}
+			ml = d * moveMult;
+			mr = d * moveMult;
 		} else { //if not landing, don't stop, fly through the point
 			ml = 1;
 			mr = 1;
