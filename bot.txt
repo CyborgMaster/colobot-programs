@@ -75,6 +75,12 @@ public float angle(point pointA, point pointB)
 	return offset + atan((pointB.y - pointA.y) / (pointB.x - pointA.x));
 }
 
+public float normalize(float a) {
+	while (a < 0) a += 360;
+	while (a > 360) a -= 360;
+	return a;
+}
+
 public point alongDirection(point origin, float angle, float dis) {
 	point p;
 	p.x = origin.x + cos(angle) * dis;

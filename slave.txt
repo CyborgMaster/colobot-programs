@@ -1,7 +1,7 @@
 extern void object::Slave() 
 {
 	object o = radar(BotFactory);
-	if (distance(position, o.position) < 2) {
+	if (o != null && distance(position, o.position) < 2) {
 		//back out of the bot factory
 		move(-7);
 	}
