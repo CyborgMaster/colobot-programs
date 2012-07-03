@@ -19,7 +19,7 @@ public class SlaveInfo {
 public class CommandCenter {
 	static SlaveInfo slaves[] = null;
 	
-	public SlaveInfo registerSlave(object slaveBot) {
+	synchronized SlaveInfo registerSlave(object slaveBot) {
 		//check to see if we already have this slave
 		for (int i = 0; i < sizeof(slaves); i++) {
 			if (slaves[i].bot == slaveBot) {
@@ -63,7 +63,7 @@ public void object::buildBuilding(int type, string name) {
 	me.bot_goto(p, 1);
 	drop();
 	
-	float a = angle(o.position, p);
+	float a = normalize(angle(o.position, p) + 180);
 	p = alongDirection(p, a, 8);
 	me.bot_goto(p, 1);
 	
