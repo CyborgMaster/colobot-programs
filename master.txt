@@ -19,6 +19,55 @@ public class SlaveInfo {
 public class CommandCenter {
 	static SlaveInfo slaves[] = null;
 	
+	void checkForUnregisteredSlaves(object that) {
+		int bots[];
+		bots[0] = WheeledGrabber;
+		bots[1] = TrackedGrabber;
+		bots[2] = WingedGrabber;
+		bots[3] = LeggedGrabber;
+		bots[4] = WheeledShooter;
+		bots[5] = TrackedShooter;
+		bots[6] = WingedShooter;
+		bots[7] = LeggedShooter;
+		bots[8] = WheeledOrgaShooter;
+		bots[9] = TrackedOrgaShooter;
+		bots[10] = WingedOrgaShooter;
+		bots[11] = LeggedOrgaShooter;
+		bots[12] = WheeledSniffer;
+		bots[13] = TrackedSniffer;
+		bots[14] = WingedSniffer;
+		bots[15] = LeggedSniffer;
+		bots[16] = Thumper;
+		bots[17] = PhazerShooter;
+		bots[18] = Recycler;
+		bots[19] = Shielder;
+		bots[20] = Subber;
+		
+		float minDis = 0;
+		while (true) {
+			object o = radar(bots, 1, 360, minDis, 100);
+			if (o == null) return;
+			if (o != that) {
+				if (!isRegistered(o)) {
+					message("Load and run program 'Slave.txt' on " + o.category);
+					while (!isRegistered(o)) wait(1);
+				}
+			}
+			
+			minDis = distance(that.position, o.position) + 0.05; 
+		}
+	}
+	
+	bool isRegistered(object slaveBot) {
+		for (int i = 0; i < sizeof(slaves); i++) {
+			if (slaves[i].bot == slaveBot) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	synchronized SlaveInfo registerSlave(object slaveBot) {
 		//check to see if we already have this slave
 		for (int i = 0; i < sizeof(slaves); i++) {
@@ -34,7 +83,7 @@ public class CommandCenter {
 		return newInfo;
 	}
 	
-	synchronized SlaveInfo getFreeSlave(int type) {
+	SlaveInfo getFreeSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
 			if(slaves[i].status == 0 /*FREE*/ && slaves[i].bot.category == type) return slaves[i];
 		}
@@ -42,7 +91,7 @@ public class CommandCenter {
 		return null;
 	}
 	
-	synchronized SlaveInfo waitFreeSlave(int type) {
+	SlaveInfo waitFreeSlave(int type) {
 		SlaveInfo slave;
 		while(true) {
 			slave = getFreeSlave(type);

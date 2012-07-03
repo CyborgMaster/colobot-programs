@@ -1,6 +1,8 @@
 extern void object::P2L4()
 {
+	object that = this;
 	CommandCenter command = new CommandCenter();
+	command.checkForUnregisteredSlaves(that);
 	
 	buildBuilding(PowerStation, "Power Station");
 	SlaveInfo slave = command.waitFreeSlave(WingedGrabber);
