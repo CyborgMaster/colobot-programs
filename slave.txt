@@ -73,7 +73,7 @@ void object::load(float[] params) {
 }
 
 point findShipSpot() {
-	int stride = 2;
+	int stride = 1;
 	
 	object o = radar(SpaceShip);
 	point origin = o.position;
@@ -83,25 +83,25 @@ point findShipSpot() {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
 			o = search(0, p);
-			if (distance2d(p, o.position) > 2) return p;
+			if (distance2d(p, o.position) > 1.5) return p;
 		}
 		
 		p.x = origin.x + stride * side;
 		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
 			o = search(0, p);
-			if (distance2d(p, o.position) > 2) return p;
+			if (distance2d(p, o.position) > 1.5) return p;
 		}
 		 
 		p.y = origin.y + stride * side;
 		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
 			o = search(0, p);
-			if (distance2d(p, o.position) > 2) return p;
+			if (distance2d(p, o.position) > 1.5) return p;
 		}
 		
 		p.x = origin.x - stride * side;
 		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
 			o = search(0, p);
-			if (distance2d(p, o.position) > 2) return p;
+			if (distance2d(p, o.position) > 1.5) return p;
 		}
 	}
 }

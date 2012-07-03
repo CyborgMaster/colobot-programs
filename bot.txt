@@ -120,6 +120,7 @@ public class Bot {
 	float hoverHeight = 10;
 	float rechargeLevel = 0.25;
 	bool breakOnRefit = false;
+	bool swapCell = true;
 	
 	public void Bot (object _me) {
 		me = _me;
@@ -145,6 +146,7 @@ public class Bot {
 		};
 		
 		bot_goto(o.position, 2);
+		turn(direction(o.position));
 		grab();
 		return true;
 	}
@@ -215,25 +217,56 @@ public class Bot {
 	}
 	
 	bool checkPower(float minLevel) {
-		object o = radar(PowerStation);
-		if (o == null) return false;
 		
 		//check for out of power
 		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
-			message("Recharging...");
-			state = RECHARGING;
-			
-			bool oldRefit = breakOnRefit;
-			breakOnRefit = false;
-			bot_goto(o.position, 1);
-			breakOnRefit = oldRefit;
-			while(me.energyCell.energyLevel < 1) {
-				wait(1);
+			object o = radar(PowerStation);
+			if (o != null) {
+				state = RECHARGING;
+				message("Recharging...");
+				bool oldRefit = breakOnRefit;
+				breakOnRefit = false;
+				bot_goto(o.position, 1);
+				breakOnRefit = oldRefit;
+				while(me.energyCell.energyLevel < 1) {
+					wait(1);
+				}
+				state = NORMAL;
+				message("Recharging done.");
+			} else {
+				o = radar(PowerCell);
+				if (o != null) {
+					state = RECHARGING;
+					message("Replacing power cell...", DisplayInfo);
+					bool oldRefit = breakOnRefit;
+					breakOnRefit = false;
+					bot_goto(o.position, 2);
+					bool hadLoad = (me.load != null);
+					if (hadLoad) {
+						turn(90);
+						drop();
+					}
+					turn(direction(o.position));
+					grab(EnergyCell);
+					drop(Behind);
+					grab(InFront);
+					drop(EnergyCell);
+					grab(Behind);
+					drop(InFront);
+					if (hadLoad) {
+						turn(90);
+						grab();
+					}
+					breakOnRefit = oldRefit;
+					state = NORMAL;
+					message("Power cell replaced", DisplayInfo);
+				} else {
+					//can't recharge
+					return false;
+				}
 			}
-			state = NORMAL;
-			message("Recharging done.");
 			
-			//check to see if we should also repair
+			//succesful charge, check to see if we should also repair
 			o = radar(RepairCenter);
 			if (o != null && distance2d(me.position, o.position) < 100) {
 				checkShields(0.90);
