@@ -1,0 +1,22 @@
+extern void object::P2L4()
+{
+	CommandCenter command = new CommandCenter();
+	
+	buildBuilding(PowerStation, "Power Station");
+	SlaveInfo slave = command.waitFreeSlave(WingedGrabber);
+	
+	//command the slave to get the ore
+	slave.params[0] = BlackBox; //category
+	slave.params[1] = 1; //count
+	slave.command = 2; //load
+	
+	//wait for the slave to finish
+	while (slave.status != slave.BUSY) {
+		wait(1);
+	}
+	while (slave.status == slave.BUSY) {
+		wait(1);
+	}
+	
+	message("Board spaceship and take off!");
+}
