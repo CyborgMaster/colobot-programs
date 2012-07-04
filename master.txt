@@ -49,7 +49,9 @@ public class CommandCenter {
 			if (o == null) return;
 			if (o != that) {
 				if (!isRegistered(o)) {
-					message("Load and run program 'Slave.txt' on " + o.category);
+					message("Registering slave: " + o.category);
+					loadprogram(o, 1, "program\\slave.txt");
+					runprogram(o, 1);
 					while (!isRegistered(o)) wait(1);
 				}
 			}
