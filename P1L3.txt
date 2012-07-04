@@ -6,20 +6,19 @@ extern void object::P1L3() {
 	SlaveInfo slave = command.waitFreeSlave(TrackedGrabber);
 	
 	//command the slave to get the black box
-	object o = radar(SpaceShip);
 	slave.params[0] = BlackBox; //category
-	slave.params[1] = o.position.x; //drop x
-	slave.params[2] = o.position.y; //drop y
-	slave.params[3] = 0; //shouldn't wait;
-	slave.command = 1; //collect
-	
-	//go to the ship
-	goto(o.position);
+	slave.params[1] = 1; //count
+	slave.command = 2; //load
 	
 	//wait for the slave to finish
-	while (slave.status == slave.BUSY) {
-		wait(1);
-	}
+	while (slave.status != slave.BUSY) wait(1);
+	while (slave.status == slave.BUSY) wait(1);
+	
 	
 	message("Board spaceship and take off!");
+	
+	//go to the ship
+	object o = radar(SpaceShip);
+	goto(o.position);
+	
 }

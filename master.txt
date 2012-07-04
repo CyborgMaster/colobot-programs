@@ -155,7 +155,9 @@ public void object::buildBot(int type, string name){
 	turn(90);
 	move(5);
 	
-	message("Load and run program 'Slave.txt' on new bot");
+	//load slave program
+	loadprogram(o, 1, "program\\slave.txt");
+	runprogram(o, 1);
 }
 
 public void object::research(string name) {
