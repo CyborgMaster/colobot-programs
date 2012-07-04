@@ -14,7 +14,7 @@ extern void object::Slave()
 	int task;
 	while(true) {
 		task = info.command;
-		if (task >= 0) break;
+		if (task > 0) break;
 		wait(1); 
 	}
 	
