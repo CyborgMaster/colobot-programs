@@ -15,13 +15,12 @@ extern void object::P2L1()
 	slave.params[1] = 4; //count
 	slave.command = 2; //load
 	
-	//go to the ship
-	goto(o.position);
-	
 	//wait for the slave to finish
-	while (slave.status == slave.BUSY) {
-		wait(1);
-	}
+	while (slave.status != slave.BUSY) wait(1);
+	while (slave.status == slave.BUSY) wait(1);
 	
 	message("Board spaceship and take off!");
+	
+	//go to the ship
+	goto(o.position);
 }
