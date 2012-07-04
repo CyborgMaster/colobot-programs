@@ -1,0 +1,9 @@
+extern void object::LevelBootstrap()
+{
+	string level = "P2L1";
+	
+	loadprogram(this, 8, "program\\bot.txt");
+	loadprogram(this, 9, "program\\master.txt");
+	loadprogram(this, 10, "program\\" + level + ".txt");
+	runprogram(this, 10);
+}
