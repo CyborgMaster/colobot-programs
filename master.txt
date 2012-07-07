@@ -1,5 +1,42 @@
 extern void object::Master() {}
 
+public class Goal {
+	static Const const = new Const();
+	
+	string type;
+	int botType;
+	string params;
+	Goal[] requirements;
+	
+	void Goal(string _type, int _botType, string _params) {
+		int research;
+		
+		type = _type;
+		botType = _botType;
+		params = _params;
+		
+		
+		//check for prereqs
+		if (type == "buildBot") {
+			//ensure research
+			research = botResearch(botType);
+			if (research != 0) message("have to research!");
+		}
+	}
+}
+
+public int botResearch(int botType) {
+	Const const = new Const();
+	
+	switch(botType) {
+		case TrackedGrabber:
+		return const.RESEARCH_TRACKED;
+		
+		default:
+		message("Invalid bot type: " + botType, DisplayError);
+	}
+}
+
 public class SlaveInfo {
 	static int FREE = 0;
 	static int BUSY = 1;
@@ -18,6 +55,13 @@ public class SlaveInfo {
 
 public class CommandCenter {
 	static SlaveInfo slaves[] = null;
+	static bool noGoals = true;
+	static Goal[] goals;
+	
+	synchronized void addGoal(string type, int botType, string params) {
+		goals[noGoals ? 0 : sizeof(goals)] = new Goal(type, botType, params);
+		noGoals = false;
+	}
 	
 	void checkForUnregisteredSlaves(object that) {
 		int bots[];
