@@ -5,36 +5,64 @@ public class Goal {
 	
 	string type;
 	int botType;
-	string params;
+	string[] params;
 	Goal[] requirements;
 	
 	void Goal(string _type, int _botType, string _params) {
-		int research;
+		int rNeeded;
 		
 		type = _type;
 		botType = _botType;
-		params = _params;
+		params = split(_params);
 		
+		//needed to initialize array
+		Goal[] blank;
+		requirements = blank;
 		
 		//check for prereqs
 		if (type == "buildBot") {
 			//ensure research
-			research = botResearch(botType);
-			if (research != 0) message("have to research!");
+			//find research needed to produce this bot
+			message("" +params);
+			rNeeded = botResearch(strval(params[0]));
+			//remove research already completed
+			rNeeded &= ~info(const.INFO_RESEARCH_DONE);
+			
+			if (rNeeded != 0) {
+				//add sub goal
+				requirements[sizeof(requirements)] = new Goal("research", WheeledGrabber, "" + rNeeded);
+			}
+			
+			//assume we have titanium and power cell for now
+			
+		} else if (type == "research") {
+			//make sure needed research is available on this level
+			rNeeded = strval(params[0]);
+			if ((rNeeded & ~info(const.INFO_RESEARCH_AVAILABLE)) != 0) {
+				message("Research not available!");
+				return;
+			}
+			
+			//assume we have power cell for now
+			
+		} else {
+			message("Unrecognized goal type! " + type, DisplayError);
 		}
 	}
 }
 
-public int botResearch(int botType) {
-	Const const = new Const();
+public string[] split(string in) {
+	string[] res;
+	int count = 0;
 	
-	switch(botType) {
-		case TrackedGrabber:
-		return const.RESEARCH_TRACKED;
-		
-		default:
-		message("Invalid bot type: " + botType, DisplayError);
+	while(true) {
+		int loc = strfind(in, ",");
+		if (loc == nan) break;
+		res[count++] = strleft(in, loc);
+		in = strmid(in, loc + 1);
 	}
+	res[count] = in;
+	return res;
 }
 
 public class SlaveInfo {
@@ -55,41 +83,25 @@ public class SlaveInfo {
 
 public class CommandCenter {
 	static SlaveInfo slaves[] = null;
-	static bool noGoals = true;
 	static Goal[] goals;
+	static Const const = new Const();
 	
 	synchronized void addGoal(string type, int botType, string params) {
-		goals[noGoals ? 0 : sizeof(goals)] = new Goal(type, botType, params);
-		noGoals = false;
+		goals[sizeof(goals)] = new Goal(type, botType, params);
+		
+		message("goals: " + sizeof(goals));
+	}
+	
+	synchronized void resetGoals() {
+		Goal[] empty;
+		goals = empty;
 	}
 	
 	void checkForUnregisteredSlaves(object that) {
-		int bots[];
-		bots[0] = WheeledGrabber;
-		bots[1] = TrackedGrabber;
-		bots[2] = WingedGrabber;
-		bots[3] = LeggedGrabber;
-		bots[4] = WheeledShooter;
-		bots[5] = TrackedShooter;
-		bots[6] = WingedShooter;
-		bots[7] = LeggedShooter;
-		bots[8] = WheeledOrgaShooter;
-		bots[9] = TrackedOrgaShooter;
-		bots[10] = WingedOrgaShooter;
-		bots[11] = LeggedOrgaShooter;
-		bots[12] = WheeledSniffer;
-		bots[13] = TrackedSniffer;
-		bots[14] = WingedSniffer;
-		bots[15] = LeggedSniffer;
-		bots[16] = Thumper;
-		bots[17] = PhazerShooter;
-		bots[18] = Recycler;
-		bots[19] = Shielder;
-		bots[20] = Subber;
 		
 		float minDis = 0;
 		while (true) {
-			object o = radar(bots, 1, 360, minDis, 100);
+			object o = radar(const.ALL_BOTS, 1, 360, minDis, 100);
 			if (o == null) return;
 			if (o != that) {
 				if (!isRegistered(o)) {

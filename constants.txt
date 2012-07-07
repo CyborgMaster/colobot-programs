@@ -1,6 +1,8 @@
 extern void object::Contants() {}
 
 public class Const {
+	static bool staticInit = true;
+	
 	static int RESEARCH_TRACKED =   (1<<0);
 	static int RESEARCH_WINGED =    (1<<1);
 	static int RESEARCH_SHOOTER =   (1<<2);  
@@ -14,6 +16,69 @@ public class Const {
 	static int RESEARCH_RECYCLER =  (1<<10); 
 	static int RESEARCH_SUBBER =    (1<<11); 
 	static int RESEARCH_SNIFFER =   (1<<12); 
+	
+	static int INFO_RESEARCH_AVAILABLE = 0;
+	static int INFO_RESEARCH_DONE = 1;
+	static int INFO_BUILDINGS_AVAILABLE = 2;
+	
+	static int[] ALL_BOTS;
+	
+	public void Const() {
+		if (staticInit) {
+			int []a = ( 
+			WheeledGrabber,
+			TrackedGrabber,
+			WingedGrabber,
+			LeggedGrabber,
+			WheeledShooter,
+			TrackedShooter,
+			WingedShooter,
+			LeggedShooter,
+			WheeledOrgaShooter,
+			TrackedOrgaShooter,
+			WingedOrgaShooter,
+			LeggedOrgaShooter,
+			WheeledSniffer,
+			TrackedSniffer,
+			WingedSniffer,
+			LeggedSniffer,
+			Thumper,
+			PhazerShooter,
+			Recycler,
+			Shielder,
+			Subber
+			);
+			ALL_BOTS = a;
+			staticInit = false;
+		}
+	}
 }
 
+public int botResearch(int botType) {
+	Const const = new Const();
+	
+	switch(botType) {
+		case TrackedGrabber:
+		return const.RESEARCH_TRACKED;
+		case WingedShooter:
+		return const.RESEARCH_WINGED | const.RESEARCH_SHOOTER;
+		default:
+		message("Invalid bot type: " + botType, DisplayError);
+	}
+}
 
+public int integer(int constant) {
+	return constant;
+}
+
+public string printFlags(int flags) {
+	string s = "|";
+	for (int i = 12; i >= 0; i--) {
+		if ((flags & (1<<i)) != 0) {
+			s += "1|";
+		} else {
+			s += "0|";
+		}
+	}
+	return s;
+}
