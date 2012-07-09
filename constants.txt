@@ -54,6 +54,38 @@ public class Const {
 	}
 }
 
+string BotSubStr(int cat){
+	 switch (cat%10) { 
+		case 0: return "Wheeled"; 
+		case 1: return "Tracked"; 
+		case 2: return "Winged"; 
+		case 3: return "Legged";
+	}
+}
+
+string ColorStr(int cat){
+	 switch (cat%10) { 
+		case 0: return "Blue"; 
+		case 1: return "Red"; 
+		case 2: return "Green"; 
+		case 3: return "Yellow"; 
+		case 4: return "Violet";
+	}
+}
+
+public string CatStr(int cat) {
+	 switch (cat) {
+		  case 11: return "Research Station";
+	}
+	 switch (cat/10) { default: return "Cat " + cat;
+		  case 11: return BotSubStr(cat) + " Grabber";
+		  case 12: return BotSubStr(cat) + " Sniffer ";
+		  case 13: return BotSubStr(cat) + " Shooter";
+		  case 14: return BotSubStr(cat) + " OrgaShooter";
+		  case 26: return ColorStr(cat) + " Flag";
+	} 
+}
+
 public int botResearch(int botType) {
 	Const const = new Const();
 	
