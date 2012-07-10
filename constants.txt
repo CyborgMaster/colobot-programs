@@ -76,16 +76,25 @@ string ColorStr(int cat){
 }
 
 public string CatStr(int cat) {
-	 switch (cat) {
-		  case 11: return "Research Station";
+	switch (cat) {
+	case 11: return "Research Station";
 	}
-	 switch (cat/10) { default: return "Cat " + cat;
-		  case 11: return BotSubStr(cat) + " Grabber";
-		  case 12: return BotSubStr(cat) + " Sniffer ";
-		  case 13: return BotSubStr(cat) + " Shooter";
-		  case 14: return BotSubStr(cat) + " OrgaShooter";
-		  case 26: return ColorStr(cat) + " Flag";
+	switch (cat/10) { default: return "Cat " + cat;
+	case 11: return BotSubStr(cat) + " Grabber";
+	case 12: return BotSubStr(cat) + " Sniffer ";
+	case 13: return BotSubStr(cat) + " Shooter";
+	case 14: return BotSubStr(cat) + " OrgaShooter";
+	case 26: return ColorStr(cat) + " Flag";
 	} 
+}
+
+public string reserachString(int research) {
+	Const const = new Const();
+
+	if (research == const.RESEARCH_TRACKED) return "Tracked Bots";
+
+	message("Unrecognized research type!", DisplayError);
+	return "Unrecognized research type!";
 }
 
 //returns the research needed for the bot's propultion
