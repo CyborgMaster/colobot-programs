@@ -3,12 +3,16 @@
 extern void object::Master() {}
 
 public class Goal {
+	static int NONE = 0;
+	static int IN_PROGRESS = 1;
+	static int DONE = 2;
+	
 	static Const const = new Const();
 	
 	string type;
 	int botType;
 	string[] params;
-	bool completed = false;
+	int status = 0; //NONE
 	Goal[] requirements = null;
 	
 	void Goal(string _type, int _botType, string _params) {
@@ -24,7 +28,7 @@ public class Goal {
 			//ensure research
 			rNeeded = botResearch(strval(params[0]));
 			subGoal = new Goal("research", WheeledGrabber, "" + rNeeded);
-			if (!subGoal.completed) {
+			if (subGoal.status == NONE) {
 				requirements[sizeof(requirements)] = subGoal;
 			}
 			
@@ -35,7 +39,7 @@ public class Goal {
 			//remove research already completed
 			rNeeded &= ~info(const.INFO_RESEARCH_DONE);
 			if (rNeeded == 0) {
-				completed = true;
+				status = DONE;
 				return;
 			}
 			//make sure needed research is available on this level
@@ -53,14 +57,21 @@ public class Goal {
 	}
 
 	Goal nextGoal() {
-		if (sizeof(requirements) == 0) return this;
-		return requirements[0].nextGoal();
+		//check sub goals
+		for (int i = 0; i < sizeof(requirements); i++) {
+			if (requirements[i].status == NONE) return requirements[i];
+		}
+
+		if (status == NONE) return this;
+		else return null;
 	}
 
+	/*
 	void execute(object bot) {
 		Goal that = this;
 		bot.performTask(that.type, that.params);
 	}
+	*/
 }
 
 public string[] split(string in) {
@@ -83,13 +94,12 @@ public class SlaveInfo {
 	
 	object bot;
 	int status;
-	int command;
-	float[] params;
+	Goal goal;
 	
 	void SlaveInfo(object slaveBot) {
 		bot = slaveBot;
 		status = FREE;
-		command = -1;
+		goal = null;
 	}
 }
 
@@ -109,7 +119,7 @@ public class CommandCenter {
 		goals = empty;
 	}
 
-	Goal nextGoal() {
+	synchronized Goal nextGoal() {
 		if (sizeof(goals) == 0) return null;
 		return goals[0].nextGoal();
 	}
@@ -174,5 +184,37 @@ public class CommandCenter {
 			if (slave != null) return slave;
 			wait(1);
 		}
+	}
+}
+
+public void object::slave() 
+{
+	object o = radar(BotFactory);
+	if (o != null && distance(position, o.position) < 2) {
+		//back out of the bot factory
+		move(-7);
+	}
+	
+	//register as a slave
+	CommandCenter command = new CommandCenter();
+	object myThis = this;
+	SlaveInfo info = command.registerSlave(myThis);
+	
+	Goal goal;
+	while (true) {
+		while(true) {
+			goal = command.nextGoal();
+			if (goal != null) break;
+			wait(1); 
+		}
+		
+		//mark busy
+		info.status = info.BUSY;
+		info.goal = goal;
+		performGoal(goal);
+		goal.status = goal.DONE;
+		info.goal = null;
+		//mark free
+		info.status = info.FREE;
 	}
 }

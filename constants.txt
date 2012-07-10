@@ -79,12 +79,13 @@ public string CatStr(int cat) {
 	switch (cat) {
 	case 11: return "Research Station";
 	}
-	switch (cat/10) { default: return "Cat " + cat;
+	switch (cat/10) {
 	case 11: return BotSubStr(cat) + " Grabber";
 	case 12: return BotSubStr(cat) + " Sniffer ";
 	case 13: return BotSubStr(cat) + " Shooter";
 	case 14: return BotSubStr(cat) + " OrgaShooter";
 	case 26: return ColorStr(cat) + " Flag";
+	default: return "Cat " + cat;
 	} 
 }
 

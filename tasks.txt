@@ -2,15 +2,17 @@
 
 extern void object::Tasks() {}
 
-public void object::performTask(string task, string[] params) {
-	if (task == "research") {
-		research(strval(params[0]));
-	} else if (task == "collect") {
+public void object::performGoal(Goal goal) {
+	if (goal.type == "research") {
+		research(strval(goal.params[0]));
+	} else if (goal.type == "buildBot") {
+		buildBot(strval(goal.params[0]));
+	} else if (goal.type == "collect") {
 		//collect(params);
-	} else if (task == "load") {
+	} else if (goal.type == "load") {
 		//load(params);
 	} else {
-		message("Unrecognized task code: " + task, DisplayError);
+		message("Unrecognized task code: " + goal.type, DisplayError);
 	}
 }
 
@@ -72,7 +74,7 @@ public void object::buildBuilding(int type, string name) {
 	} while (o == null);
 }
 
-public void object::buildBot(int type, string name){
+public void object::buildBot(int type){
 	object that = this;
 	Bot me(that);
 	me.get(Titanium, that.position, 0, false);
@@ -87,7 +89,7 @@ public void object::buildBot(int type, string name){
 	drop();
 	move(-5);
 	
-	message("Build '" + name + "'");
+	message("Build '" + CatStr(type) + "'");
 	
 	point p = position;
 	me.get(PowerCell, that.position, 0, false);
