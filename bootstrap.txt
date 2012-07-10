@@ -1,9 +1,19 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
 extern void object::LevelBootstrap()
 {
 	string level = "P1L3";
+
+	int res = 0;
+	res += loadprogram(this, 10, "program\\constants.txt");
+	res += loadprogram(this, 9, "program\\bot.txt");
+	res += loadprogram(this, 8, "program\\tasks.txt");
+	res += loadprogram(this, 7, "program\\master.txt");
+	res += loadprogram(this, 6, "program\\" + level + ".txt");
 	
-	loadprogram(this, 8, "program\\bot.txt");
-	loadprogram(this, 9, "program\\master.txt");
-	loadprogram(this, 10, "program\\" + level + ".txt");
-	runprogram(this, 10);
+	if (res > 0) {
+		message("Error loading programs!", DisplayError);
+	} else {
+		runprogram(this, 6);
+	}
 }
