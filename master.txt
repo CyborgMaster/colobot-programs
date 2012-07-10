@@ -57,8 +57,9 @@ public class Goal {
 		return requirements[0].nextGoal();
 	}
 
-	void execute() {
-
+	void execute(object bot) {
+		Goal that = this;
+		bot.performTask(that.type, that.params);
 	}
 }
 

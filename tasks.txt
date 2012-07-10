@@ -2,7 +2,7 @@
 
 extern void object::Tasks() {}
 
-void object::performTask(string task, string[] params) {
+public void object::performTask(string task, string[] params) {
 	if (task == "research") {
 		research(strval(params[0]));
 	} else if (task == "collect") {
