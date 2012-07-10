@@ -1,3 +1,5 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
 /* Ideas
  * Don't circle targets if we are really close to them
  * better verticle aim on kill

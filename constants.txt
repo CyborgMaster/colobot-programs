@@ -1,3 +1,5 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
 extern void object::Contants() {}
 
 public class Const {
@@ -86,16 +88,28 @@ public string CatStr(int cat) {
 	} 
 }
 
+//returns the research needed for the bot's propultion
+int botPropResearch(int botType){
+	Const const = new Const();
+	 switch (botType % 10) {
+	 case 0: return 0;  //Wheeled needs no research
+	 case 1: return const.RESEARCH_TRACKED;
+	 case 2: return const.RESEARCH_WINGED;
+	 case 3: return const.RESEARCH_LEGGED;
+	}
+}
+
 public int botResearch(int botType) {
 	Const const = new Const();
-	
-	switch(botType) {
-		case TrackedGrabber:
-		return const.RESEARCH_TRACKED;
-		case WingedShooter:
-		return const.RESEARCH_WINGED | const.RESEARCH_SHOOTER;
-		default:
+
+	switch (botType/10) {
+	case 11: return botPropResearch(botType); //grabber needs no research
+	case 12: return botPropResearch(botType) | const.RESEARCH_SNIFFER;
+	case 13: return botPropResearch(botType) | const.RESEARCH_SHOOTER;
+	case 14: return botPropResearch(botType) | const.RESEARCH_ORGA;
+	default:
 		message("Invalid bot type: " + botType, DisplayError);
+		return 0;
 	}
 }
 
