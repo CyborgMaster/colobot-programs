@@ -1,3 +1,5 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
 extern void object::Master() {}
 
 public class Goal {
@@ -6,40 +8,40 @@ public class Goal {
 	string type;
 	int botType;
 	string[] params;
-	Goal[] requirements;
+	bool completed = false;
+	Goal[] requirements = null;
 	
 	void Goal(string _type, int _botType, string _params) {
 		int rNeeded;
-		
+		Goal subGoal;
+
 		type = _type;
 		botType = _botType;
 		params = split(_params);
 		
-		//needed to initialize array
-		Goal[] blank;
-		requirements = blank;
-		
 		//check for prereqs
 		if (type == "buildBot") {
 			//ensure research
-			//find research needed to produce this bot
-			message("" +params);
 			rNeeded = botResearch(strval(params[0]));
-			//remove research already completed
-			rNeeded &= ~info(const.INFO_RESEARCH_DONE);
-			
-			if (rNeeded != 0) {
-				//add sub goal
-				requirements[sizeof(requirements)] = new Goal("research", WheeledGrabber, "" + rNeeded);
+			subGoal = new Goal("research", WheeledGrabber, "" + rNeeded);
+			if (!subGoal.completed) {
+				requirements[sizeof(requirements)] = subGoal;
 			}
 			
 			//assume we have titanium and power cell for now
 			
 		} else if (type == "research") {
+			rNeeded = strval(params[0]);
+			//remove research already completed
+			rNeeded &= ~info(const.INFO_RESEARCH_DONE);
+			if (rNeeded == 0) {
+				completed = true;
+				return;
+			}
 			//make sure needed research is available on this level
 			rNeeded = strval(params[0]);
 			if ((rNeeded & ~info(const.INFO_RESEARCH_AVAILABLE)) != 0) {
-				message("Research not available!");
+				message("Research not available!", DisplayError);
 				return;
 			}
 			
@@ -49,6 +51,8 @@ public class Goal {
 			message("Unrecognized goal type! " + type, DisplayError);
 		}
 	}
+
+	
 }
 
 public string[] split(string in) {
