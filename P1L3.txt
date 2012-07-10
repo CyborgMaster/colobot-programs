@@ -1,24 +1,20 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
+void addGoals(CommandCenter command) {
+	command.addGoal("load", TrackedGrabber, integer(BlackBox)+",1");
+	command.addGoal("board", WheeledGrabber, "");
+}
+
 extern void object::P1L3() {
 	CommandCenter command = new CommandCenter();
+
+	object that = this;
+	command.registerSlave(that);
+	command.checkForUnregisteredSlaves(that);
 	
-	research("Tracked Bots");
-	buildBot(TrackedGrabber, "Tracked Grabber");
-	SlaveInfo slave = command.waitFreeSlave(TrackedGrabber);
+	command.resetGoals();
+	addGoals(command);
 	
-	//command the slave to get the black box
-	slave.params[0] = BlackBox; //category
-	slave.params[1] = 1; //count
-	slave.command = 2; //load
-	
-	//wait for the slave to finish
-	while (slave.status != slave.BUSY) wait(1);
-	while (slave.status == slave.BUSY) wait(1);
-	
-	
-	message("Board spaceship and take off!");
-	
-	//go to the ship
-	object o = radar(SpaceShip);
-	goto(o.position);
-	
+	//run slave script
+	slave();
 }
