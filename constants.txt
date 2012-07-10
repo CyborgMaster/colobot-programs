@@ -77,7 +77,8 @@ string ColorStr(int cat){
 
 public string CatStr(int cat) {
 	switch (cat) {
-	case 11: return "Research Station";
+	case ResearchCenter: return "Research Center";
+	case BotFactory: return "Bot Factory";
 	}
 	switch (cat/10) {
 	case 11: return BotSubStr(cat) + " Grabber";
@@ -93,6 +94,7 @@ public string reserachString(int research) {
 	Const const = new Const();
 
 	if (research == const.RESEARCH_TRACKED) return "Tracked Bots";
+	if (research == const.RESEARCH_WINGED) return "Winged Bots";
 
 	message("Unrecognized research type!", DisplayError);
 	return "Unrecognized research type!";
@@ -101,11 +103,11 @@ public string reserachString(int research) {
 //returns the research needed for the bot's propultion
 int botPropResearch(int botType){
 	Const const = new Const();
-	 switch (botType % 10) {
-	 case 0: return 0;  //Wheeled needs no research
-	 case 1: return const.RESEARCH_TRACKED;
-	 case 2: return const.RESEARCH_WINGED;
-	 case 3: return const.RESEARCH_LEGGED;
+	switch (botType % 10) {
+	case 0: return 0;  //Wheeled needs no research
+	case 1: return const.RESEARCH_TRACKED;
+	case 2: return const.RESEARCH_WINGED;
+	case 3: return const.RESEARCH_LEGGED;
 	}
 }
 

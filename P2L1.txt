@@ -1,26 +1,22 @@
-extern void object::P2L1()
-{
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
+void addGoals(CommandCenter command) {
+	command.addGoal("load", WingedGrabber, integer(TitaniumOre)+",4");
+	command.addGoal("board", WheeledGrabber, "");
+}
+
+extern void object::P2L1() {
 	CommandCenter command = new CommandCenter();
+
+	object that = this;
+	command.registerSlave(that);
+	command.checkForUnregisteredSlaves(that);
 	
+	command.resetGoals();
+	addGoals(command);
 	
-	buildBuilding(ResearchCenter, "Research Center");
-	research("Winged Bots");
-	buildBuilding(BotFactory, "Bot Factory");
-	buildBot(WingedGrabber, "Winged Grabber");
-	SlaveInfo slave = command.waitFreeSlave(WingedGrabber);
-	
-	//command the slave to get the ore
-	object o = radar(SpaceShip);
-	slave.params[0] = TitaniumOre; //category
-	slave.params[1] = 4; //count
-	slave.command = 2; //load
-	
-	//wait for the slave to finish
-	while (slave.status != slave.BUSY) wait(1);
-	while (slave.status == slave.BUSY) wait(1);
-	
-	message("Board spaceship and take off!");
-	
-	//go to the ship
-	goto(o.position);
+	//run slave script
+	slave();
 }
