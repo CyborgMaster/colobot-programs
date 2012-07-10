@@ -3,14 +3,18 @@
 extern void object::Tasks() {}
 
 public void object::performGoal(Goal goal) {
-	if (goal.type == "research") {
-		research(strval(goal.params[0]));
-	} else if (goal.type == "buildBot") {
-		buildBot(strval(goal.params[0]));
-	} else if (goal.type == "collect") {
+	string type = goal.type;
+	string[] params;
+	params = goal.params;
+	
+	if (type == "research") {
+		research(strval(params[0]));
+	} else if (type == "buildBot") {
+		buildBot(strval(params[0]));
+	} else if (type == "collect") {
 		//collect(params);
-	} else if (goal.type == "load") {
-		//load(params);
+	} else if (type == "load") {
+		load(strval(params[0]), strval(params[1]));
 	} else {
 		message("Unrecognized task code: " + goal.type, DisplayError);
 	}
@@ -33,13 +37,10 @@ void object::collect(float[] params) {
 }
 
 //loads a certain number of a resource onto the ship
-void object::load(float[] params) {
-	float resource = params[0];
-	int count = params[1];
-	
+void object::load(int resource, int count) {
 	Bot me(this);
 	me.hoverHeight = 5;
-	
+
 	object ship = radar(SpaceShip);
 	
 	for (int i = 0; i < count; i++ ) {
