@@ -1,0 +1,171 @@
+//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
+
+extern void object::Tasks() {}
+
+void object::performTask(string task, string[] params) {
+	if (task == "research") {
+		research(strval(params[0]));
+	} else if (task == "collect") {
+		//collect(params);
+	} else if (task == "load") {
+		//load(params);
+	} else {
+		message("Unrecognized task code: " + task, DisplayError);
+	}
+}
+
+//gathers a type of resource to location
+void object::collect(float[] params) {
+	float resource = params[0];
+	point dropOff = new point(params[1], params[2]);
+	bool shouldWait = (params[3] != 0);
+	
+	Bot me(this);
+	me.hoverHeight = 5;
+	
+	while(me.get(resource, dropOff, 30, shouldWait)) {
+		me.deposit(dropOff);
+	}
+	
+	message("No more!");
+}
+
+//loads a certain number of a resource onto the ship
+void object::load(float[] params) {
+	float resource = params[0];
+	int count = params[1];
+	
+	Bot me(this);
+	me.hoverHeight = 5;
+	
+	object ship = radar(SpaceShip);
+	
+	for (int i = 0; i < count; i++ ) {
+		me.get(resource, ship.position, 30, false);
+		
+		//find a good spot on the ship
+		point p = findShipSpot();
+		me.bot_goto(p, 1);
+		drop();
+	}
+}
+
+public void object::buildBuilding(int type, string name) {
+	object that = this;
+	Bot me(that);
+	me.get(Titanium, that.position, 0, false);
+	
+	object o = radar(SpaceShip);
+	point p = space(o.position, 8, 50, 8);
+	
+	me.bot_goto(p, 1);
+	drop();
+	
+	float a = normalize(angle(o.position, p) + 180);
+	p = alongDirection(p, a, 8);
+	me.bot_goto(p, 1);
+	
+	message("Build building '" + name + "' while standing here");
+	
+	do {
+		o = radar(type, 0, 360, 0, 10);
+	} while (o == null);
+}
+
+public void object::buildBot(int type, string name){
+	object that = this;
+	Bot me(that);
+	me.get(Titanium, that.position, 0, false);
+	
+	object o = radar(BotFactory);
+	if (o == null) {
+		message("No Robot Factory", DisplayError);
+		return;
+	}
+	
+	me.bot_goto(o.position, 1);
+	drop();
+	move(-5);
+	
+	message("Build '" + name + "'");
+	
+	point p = position;
+	me.get(PowerCell, that.position, 0, false);
+	me.bot_goto(p, 1);
+	
+	do {
+		o = radar(type, 0, 360, 0, 7); 
+	} while (o == null);
+	
+	me.bot_goto(o.position, 1);
+	drop();
+	
+	move(-5);
+	turn(90);
+	move(5);
+	
+	//load slave program
+	loadprogram(o, 1, "program\\slave.txt");
+	runprogram(o, 1);
+}
+
+public void object::research(int type) {
+	object that = this;
+	Bot me(that);
+	
+	object o = radar(ResearchCenter);
+	if (o == null) {
+		message("No Research Center", DisplayError);
+		return;
+	}
+	
+	if (o.energyCell == null || o.energyCell.energyLevel < 1) {
+		message("Powering Research Center", DisplayInfo);
+		me.get(PowerCell, that.position, 0, false);
+		me.bot_goto(o.position, 1);
+		motor(1,1);
+		wait(0.5);
+		motor(0,0);
+		drop();
+	}
+	
+	message("Research '" + reserachString(type) + "'");
+	
+	while (o.energyCell.energyLevel > 0.01) {
+		wait(1);
+	}
+}
+
+point findShipSpot() {
+	int stride = 1;
+	
+	object o = radar(SpaceShip);
+	point origin = o.position;
+	point p = origin;
+	
+	for (int side = 1; side < 50; side++) {
+		p.y = origin.y - stride * side;
+		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
+			o = search(0, p);
+			if (distance2d(p, o.position) > 1.5) return p;
+		}
+		
+		p.x = origin.x + stride * side;
+		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
+			o = search(0, p);
+			if (distance2d(p, o.position) > 1.5) return p;
+		}
+		 
+		p.y = origin.y + stride * side;
+		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
+			o = search(0, p);
+			if (distance2d(p, o.position) > 1.5) return p;
+		}
+		
+		p.x = origin.x - stride * side;
+		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
+			o = search(0, p);
+			if (distance2d(p, o.position) > 1.5) return p;
+		}
+	}
+}
