@@ -63,7 +63,7 @@ public class Goal {
 			
 			//assume we have power cell for now
 
-		} else if (type == "load") {
+		} else if (type == "load" || type == "board") {
 			//No sub goals
 		} else {
 			message("Unrecognized goal type! " + type, DisplayError);
@@ -120,9 +120,10 @@ public class SlaveInfo {
 }
 
 public class CommandCenter {
+	static Const const = new Const();
 	static SlaveInfo slaves[] = null;
 	static Goal[] goals;
-	static Const const = new Const();
+	static bool completed = false;
 	
 	synchronized void addGoal(string type, int botType, string params) {
 		goals[sizeof(goals)] = new Goal(type, botType, params);
@@ -141,7 +142,17 @@ public class CommandCenter {
 		return null;
 	}
 
-	
+	void checkCompletion() {
+		if (completed) return;
+		
+		for (int i = 0; i < sizeof(goals); i++) {
+			if (goals[i].status != goals[i].DONE) return;
+		}
+
+		//mission done!!!
+		message("Done! Board Spaceship!");
+		completed = true;
+	}
 	void checkForUnregisteredSlaves(object that) {
 		
 		float minDis = 0;
@@ -227,7 +238,8 @@ public void object::slave()
 		while(true) {
 			goal = command.nextGoal(that.category);
 			if (goal != null) break;
-			wait(1); 
+			wait(1);
+			command.checkCompletion();
 		}
 
 		message("New goal: " + goal.type, DisplayInfo);
