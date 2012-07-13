@@ -1,7 +1,5 @@
 //-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
 
-//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
-
 void addGoals(CommandCenter command) {
 	command.addGoal("load", WingedGrabber, integer(TitaniumOre)+",4");
 	command.addGoal("board", WheeledGrabber, "");

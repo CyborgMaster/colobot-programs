@@ -166,25 +166,3 @@ point findShipSpot() {
 		}
 	}
 }
-
-public void object::performGoal(Goal goal) {
-	string type = goal.type;
-	string[] params;
-	params = goal.params;
-	
-	if (type == "research") {
-		this.research(strval(params[0]));
-	} else if (type == "buildBot") {
-		buildBot(strval(params[0]));
-	} else if (type == "buildBuilding") {
-		this.buildBuilding(strval(params[0]));
-		//} else if (type == "collect") {
-		//collect(params);
-	} else if (type == "load") {
-		this.load(strval(params[0]), strval(params[1]));
-	} else if (type == "board") {
-		this.board();
-	} else {
-		message("Unrecognized task code: " + goal.type, DisplayError);
-	}
-}
