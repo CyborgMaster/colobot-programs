@@ -85,12 +85,12 @@ public void object::buildBot(int type){
 	
 	message("Build '" + CatStr(type) + "'");
 	
-	point p = position;
+	point p = that.position;
 	me.get(PowerCell, that.position, 0, false);
 	me.bot_goto(p, 1);
 	
 	do {
-		o = radar(type, 0, 360, 0, 7); 
+		o = radar(type, 0, 360, 0, 10); 
 	} while (o == null);
 	
 	me.bot_goto(o.position, 1);
