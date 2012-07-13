@@ -38,11 +38,7 @@ public class Goal {
 			rNeeded = botResearch(strval(params[0]));
 			addSubGoal(new Goal("research", WheeledGrabber, ""+rNeeded));
 			//ensure factory
-			o = radar(BotFactory);
-			if (o == null) {
-				addSubGoal(new Goal("buildBuilding", WheeledGrabber,
-									""+integer(BotFactory)));
-			}
+			ensureBuilding(BotFactory);
 			//assume we have titanium and power cell for now
 			
 		} else if (type == "buildBuilding") {
@@ -66,16 +62,21 @@ public class Goal {
 			}
 
 			//make sure we have a research center
-			object o = radar(ResearchCenter);
-			if (o == null) {
-				addSubGoal(new Goal("buildBuilding", WheeledGrabber,
-									""+integer(ResearchCenter)));
-			}
-			
+			ensureBuilding(ResearchCenter);
+
 			//assume we have power cell for now
 
-		} else if (type == "load" || type == "board") {
-			//No sub goals
+		} else if (type == "load") {
+			//check for adequate power
+			if (actor != null) {
+				o = radar(strval(params[0]));
+				if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
+					distance2d(actor.bot.position, o.position)) {
+					ensureBuilding(PowerStation);
+				}
+			}
+		} else if (type == "board") {
+			//no sub goals
 		} else {
 			message("Unrecognized goal type! " + type, DisplayError);
 		}
@@ -93,6 +94,14 @@ public class Goal {
 		else return null;
 	}
 
+	void ensureBuilding(int buildingType) {
+		object o = radar(buildingType);
+		if (o == null) {
+			addSubGoal(new Goal("buildBuilding", WheeledGrabber,
+								""+buildingType));
+		}
+	}
+	
 	void addSubGoal(Goal subGoal) {
 		if (subGoal.status == NONE) {
 			requirements[sizeof(requirements)] = subGoal;

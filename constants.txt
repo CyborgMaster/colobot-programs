@@ -4,20 +4,22 @@ extern void object::Contants() {}
 
 public class Const {
 	static bool staticInit = true;
+
+	static float FLYING_RANGE = 1500;
 	
 	static int RESEARCH_TRACKED =   (1<<0);
 	static int RESEARCH_WINGED =    (1<<1);
-	static int RESEARCH_SHOOTER =   (1<<2);  
-	static int RESEARCH_TOWER =     (1<<3);  
-	static int RESEARCH_NUCLEAR =   (1<<4);  
-	static int RESEARCH_THUMPER =   (1<<5);  
-	static int RESEARCH_SHIELDER =  (1<<6);  
-	static int RESEARCH_PHAZER =    (1<<7);  
-	static int RESEARCH_LEGGED =    (1<<8);  
-	static int RESEARCH_ORGA =      (1<<9);  
-	static int RESEARCH_RECYCLER =  (1<<10); 
-	static int RESEARCH_SUBBER =    (1<<11); 
-	static int RESEARCH_SNIFFER =   (1<<12); 
+	static int RESEARCH_SHOOTER =   (1<<2);
+	static int RESEARCH_TOWER =     (1<<3);
+	static int RESEARCH_NUCLEAR =   (1<<4);
+	static int RESEARCH_THUMPER =   (1<<5);
+	static int RESEARCH_SHIELDER =  (1<<6);
+	static int RESEARCH_PHAZER =    (1<<7);
+	static int RESEARCH_LEGGED =    (1<<8);
+	static int RESEARCH_ORGA =      (1<<9);
+	static int RESEARCH_RECYCLER =  (1<<10);
+	static int RESEARCH_SUBBER =    (1<<11);
+	static int RESEARCH_SNIFFER =   (1<<12);
 	
 	static int INFO_RESEARCH_AVAILABLE = 0;
 	static int INFO_RESEARCH_DONE = 1;
