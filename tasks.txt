@@ -63,7 +63,7 @@ public void object::buildBuilding(int type) {
 	build(type);
 
 	do {
-		o = radar(type, 0, 360, 0, 10);
+		o = radar(type, 0, 360, 0, 16);
 	} while (o == null);
 }
 
@@ -135,7 +135,7 @@ public void object::performResearch(int type) {
 
 point findShipSpot() {
 	int stride = 1;
-	int size = 5;
+	int size = 3;
 
 	object o = radar(SpaceShip);
 	point origin = o.position;
