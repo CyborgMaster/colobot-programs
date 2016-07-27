@@ -123,7 +123,8 @@ public void object::performResearch(int type) {
 		drop();
 	}
 
-	message("Research '" + researchString(type) + "'");
+	message("Researching '" + researchString(type) + "'");
+	o.research(type);
 
 	while (o.energyCell.energyLevel > 0.01) {
 		wait(1);

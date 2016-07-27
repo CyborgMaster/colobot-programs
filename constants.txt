@@ -91,10 +91,8 @@ public string CatStr(int cat) {
 }
 
 public string researchString(int research) {
-	Const const = new Const();
-
-	if (research == const.RESEARCH_TRACKED) return "Tracked Bots";
-	if (research == const.RESEARCH_WINGED) return "Winged Bots";
+	if (research == ResearchTracked) return "Tracked Bots";
+	if (research == ResearchWinged) return "Winged Bots";
 
 	message("Unrecognized research type!", DisplayError);
 	return "Unrecognized research type!";
@@ -125,6 +123,9 @@ public int[] botResearch(int botType) {
 	return research;
 }
 
+// When converting to a string, a raw constant (ResearchTracked, etc) will
+// become the string text.  If we want it to be the number, we can pass if
+// through this function first.
 public int integer(int constant) {
 	return constant;
 }

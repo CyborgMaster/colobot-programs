@@ -14,35 +14,23 @@ public class Goal {
 	Goal[] requirements = null;
 
 	void Goal(string _type, int _botType, string _params) {
-		message("constructor");
 		CommandCenter command = new CommandCenter();
-		message("command inited");
 		SlaveInfo actor;
-		int[] rNeeded;
-		object o;
 
 		type = _type;
 		botType = _botType;
-		message(_params);
 		params = split(_params);
-		message("" + params);
 
 		//check for prereqs
 
 		//make sure we have the bot required for the task
-		message("finding actor");
 		actor = command.getFreeSlave(_botType);
 		if (actor == null) {
-			message("need to build bot");
 			addSubGoal(new Goal("buildBot", WheeledGrabber, ""+botType));
 		}
-		message("actor found");
 
 		if (type == "buildBot") {
-			//ensure research
-			rNeeded = botResearch(strval(params[0]));
-			addSubGoal(new Goal("research", WheeledGrabber, ""+rNeeded));
-			//ensure factory
+			ensureResearch(botResearch(strval(params[0])));
 			ensureBuilding(BotFactory);
 			//assume we have titanium and power cell for now
 
@@ -52,25 +40,9 @@ public class Goal {
 			//assume we have the titanium
 
 		} else if (type == "research") {
-			// rNeeded = strval(params[0]);
-			// //remove research already completed
-			// rNeeded &= ~info(const.INFO_RESEARCH_DONE);
-			// if (rNeeded == 0) {
-			// 	status = DONE;
-			// 	return;
-			// }
-			// //make sure needed research is available on this level
-			// rNeeded = strval(params[0]);
-			// if ((rNeeded & ~info(const.INFO_RESEARCH_AVAILABLE)) != 0) {
-			// 	message("Research not available!", DisplayError);
-			// 	return;
-			// }
-
-			//make sure we have a research center
 			ensureBuilding(ResearchCenter);
 
 			//assume we have power cell for now
-
 		} else if (type == "load") {
 			//check for adequate power
 			if (actor != null) {
@@ -99,17 +71,26 @@ public class Goal {
 		else return null;
 	}
 
+	void addSubGoal(Goal subGoal) {
+		if (subGoal.status == NONE) {
+			requirements[sizeof(requirements)] = subGoal;
+		}
+	}
+
 	void ensureBuilding(int buildingType) {
 		object o = radar(buildingType);
 		if (o == null) {
 			addSubGoal(new Goal("buildBuilding", WheeledGrabber,
-								""+buildingType));
+													""+buildingType));
 		}
 	}
 
-	void addSubGoal(Goal subGoal) {
-		if (subGoal.status == NONE) {
-			requirements[sizeof(requirements)] = subGoal;
+	void ensureResearch(int[] research) {
+		for (int i = 0; i < sizeof(research); i++) {
+			if (!researched(research[i])) {
+				// TODO: make sure research is available
+				addSubGoal(new Goal("research", WheeledGrabber, ""+integer(research[i])));
+			}
 		}
 	}
 }
@@ -142,7 +123,6 @@ public string[] split(string in) {
 
 	while(true) {
 		int loc = strfind(in, ",");
-		message("" + loc);
 		if (loc == -1) break;
 		res[count++] = strleft(in, loc);
 		in = strmid(in, loc + 1);
@@ -174,7 +154,6 @@ public class CommandCenter {
 	static bool staticInit = true;
 
 	synchronized void addGoal(string type, int botType, string params) {
-		message("adding goal: " + type);
 		goals[sizeof(goals)] = new Goal(type, botType, params);
 	}
 
@@ -279,7 +258,6 @@ public void object::slave()
 	//register as a slave
 	CommandCenter command = new CommandCenter();
 	object that = this;
-	//message(""+that);
 	SlaveInfo info = command.registerSlave(that);
 
 	while (true) {
