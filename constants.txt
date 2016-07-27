@@ -1,12 +1,10 @@
-//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
-
-extern void object::Contants() {}
+extern void object::Contsants() {}
 
 public class Const {
 	static bool staticInit = true;
 
 	static float FLYING_RANGE = 1500;
-	
+
 	static int RESEARCH_TRACKED =   (1<<0);
 	static int RESEARCH_WINGED =    (1<<1);
 	static int RESEARCH_SHOOTER =   (1<<2);
@@ -20,16 +18,16 @@ public class Const {
 	static int RESEARCH_RECYCLER =  (1<<10);
 	static int RESEARCH_SUBBER =    (1<<11);
 	static int RESEARCH_SNIFFER =   (1<<12);
-	
+
 	static int INFO_RESEARCH_AVAILABLE = 0;
 	static int INFO_RESEARCH_DONE = 1;
 	static int INFO_BUILDINGS_AVAILABLE = 2;
-	
+
 	static int[] ALL_BOTS;
-	
+
 	public void Const() {
 		if (staticInit) {
-			int []a = ( 
+			int []a = {
 			WheeledGrabber,
 			TrackedGrabber,
 			WingedGrabber,
@@ -51,7 +49,7 @@ public class Const {
 			Recycler,
 			Shielder,
 			Subber
-			);
+			};
 			ALL_BOTS = a;
 			staticInit = false;
 		}
@@ -59,20 +57,20 @@ public class Const {
 }
 
 string BotSubStr(int cat){
-	 switch (cat%10) { 
-		case 0: return "Wheeled"; 
-		case 1: return "Tracked"; 
-		case 2: return "Winged"; 
+	 switch (cat%10) {
+		case 0: return "Wheeled";
+		case 1: return "Tracked";
+		case 2: return "Winged";
 		case 3: return "Legged";
 	}
 }
 
 string ColorStr(int cat){
-	 switch (cat%10) { 
-		case 0: return "Blue"; 
-		case 1: return "Red"; 
-		case 2: return "Green"; 
-		case 3: return "Yellow"; 
+	 switch (cat%10) {
+		case 0: return "Blue";
+		case 1: return "Red";
+		case 2: return "Green";
+		case 3: return "Yellow";
 		case 4: return "Violet";
 	}
 }
@@ -89,7 +87,7 @@ public string CatStr(int cat) {
 	case 14: return BotSubStr(cat) + " OrgaShooter";
 	case 26: return ColorStr(cat) + " Flag";
 	default: return "Cat " + cat;
-	} 
+	}
 }
 
 public string reserachString(int research) {
