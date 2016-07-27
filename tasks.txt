@@ -50,16 +50,17 @@ public void object::buildBuilding(int type) {
 	me.get(Titanium, that.position, 0, false);
 
 	object o = radar(SpaceShip);
-	point p = space(o.position, 8, 50, 8);
+	point p1 = space(o.position, 8, 50, 8);
 
-	me.bot_goto(p, 1);
+	me.bot_goto(p1, 1);
 	drop();
 
-	float a = normalize(angle(o.position, p) + 180);
-	p = alongDirection(p, a, 8);
-	me.bot_goto(p, 1);
-
-	message("Build building '" + CatStr(type) + "' while standing here");
+	float a = normalize(angle(o.position, p1) + 180);
+	point p2 = alongDirection(p1, a, 8);
+	me.bot_goto(p2, 1);
+	turn(direction(p1));
+	message("Building building '" + CatStr(type) + "'", DisplayInfo);
+	build(type);
 
 	do {
 		o = radar(type, 0, 360, 0, 10);
