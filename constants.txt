@@ -1,4 +1,4 @@
-extern void object::Contsants() {}
+extern void object::Constants() {}
 
 public class Const {
 	static bool staticInit = true;
@@ -90,7 +90,7 @@ public string CatStr(int cat) {
 	}
 }
 
-public string reserachString(int research) {
+public string researchString(int research) {
 	Const const = new Const();
 
 	if (research == const.RESEARCH_TRACKED) return "Tracked Bots";
@@ -102,27 +102,27 @@ public string reserachString(int research) {
 
 //returns the research needed for the bot's propultion
 int botPropResearch(int botType){
-	Const const = new Const();
 	switch (botType % 10) {
 	case 0: return 0;  //Wheeled needs no research
-	case 1: return const.RESEARCH_TRACKED;
-	case 2: return const.RESEARCH_WINGED;
-	case 3: return const.RESEARCH_LEGGED;
+	case 1: return ResearchTracked;
+	case 2: return ResearchWinged;
+	case 3: return ResearchLegged;
 	}
 }
 
-public int botResearch(int botType) {
-	Const const = new Const();
+public int[] botResearch(int botType) {
+	int[] research = { botPropResearch(botType) };
 
 	switch (botType/10) {
-	case 11: return botPropResearch(botType); //grabber needs no research
-	case 12: return botPropResearch(botType) | const.RESEARCH_SNIFFER;
-	case 13: return botPropResearch(botType) | const.RESEARCH_SHOOTER;
-	case 14: return botPropResearch(botType) | const.RESEARCH_ORGA;
+	case 11: break;
+	case 12: research[1] = ResearchSniffer; break;
+	case 13: research[1] = ResearchShooter; break;
+	case 14: research[1] = ResearchOrgaShooter; break;
 	default:
 		message("Invalid bot type: " + botType, DisplayError);
-		return 0;
 	}
+
+	return research;
 }
 
 public int integer(int constant) {

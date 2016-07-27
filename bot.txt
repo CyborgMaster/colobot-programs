@@ -1,5 +1,3 @@
-//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
-
 /* Ideas
  * Don't circle targets if we are really close to them
  * better verticle aim on kill
@@ -21,40 +19,40 @@ public point nearestSafeSpot(point origin, float minDis) {
 	aliens[2] = AlienSpider;
 	aliens[3] = AlienWasp;
 	aliens[4] = AlienWorm;
-	
+
 	if (isSpotSafe(origin, aliens, minDis)) {
 		return origin;
-	} 
-	
+	}
+
 	point p;
-	
+
 	for (int side = 1; side < 50; side++) {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
 			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
-			} 
+			}
 		}
-		
+
 		p.x = origin.x + stride * side;
 		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
 			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
-			} 
+			}
 		}
-		 
+
 		p.y = origin.y + stride * side;
 		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
 			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
-			} 
+			}
 		}
-		
+
 		p.x = origin.x - stride * side;
 		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
 			if (isSpotSafe(p, aliens, minDis)) {
 				return p;
-			} 
+			}
 		}
 	}
 }
@@ -64,7 +62,7 @@ bool isSpotSafe(point p, int[] enemies, float minDis) {
 	object o = search(enemies, p);
 	if (o == null || distance2d(p, o.position) > minDis) {
 		return true;
-	} 
+	}
 }
 
 public float angle(point pointA, point pointB)
@@ -93,12 +91,12 @@ public point alongDirection(point origin, float angle, float dis) {
 public object[] allAliens() {
 	object aliens[];
 	int alienCount = 0;
-	
+
 	ipf(10000);
 	for (int n = 0; true; n++) {
 		object a = retobject(n);
 		if (a == null) break;
-		
+
 		int c = a.category;
 		if (c == AlienQueen ||
 		    c == AlienAnt ||
@@ -108,7 +106,7 @@ public object[] allAliens() {
 			aliens[alienCount++] = a;
 		}
 	}
-	
+
 	return aliens;
 }
 
@@ -118,59 +116,59 @@ public class Bot {
 	int REPAIRING = 1;
 	int RECHARGING = 2;
 	int COOLDOWN = 3;
-	
+
 	object me;
 	int state;
 	int stuckCount = 0;
 	point lastPos;
-	
+
 	//configurable parameters
 	float hoverHeight = 10;
 	float rechargeLevel = 0.25;
 	bool breakOnRefit = false;
 	bool swapCell = true;
-	
+
 	public void Bot (object _me) {
 		me = _me;
 		lastPos = me.position;
 		state = NORMAL;
 	}
-	
+
 	public bool isFlying() {
 		return me.category == WingedGrabber ||
 		  me.category == WingedShooter ||
 		  me.category == WingedSniffer ||
 		  me.category == WingedOrgaShooter;
 	}
-	
+
 	public bool get(int category, point searchCenter, float minDistance, bool shouldWait) {
 		object o;
-		
+
 		while (true) {
-			o = search(category, searchCenter, minDistance);
+			o = search(category, searchCenter); //, minDistance);
 			if (o != null) break;
 			if (!shouldWait) return false;
 			wait(0.25);
 		};
-		
+
 		bot_goto(o.position, 2);
 		turn(direction(o.position));
 		grab();
 		return true;
 	}
-	
+
 	public void deposit(point dropPoint) {
 		if (me.load == null) {
 			message("Nothing to deposit!");
 			return;
 		}
-		
+
 		//find a free spot
 		point free = space(dropPoint, 0, 20, 2);
 		bot_goto(free, 1);
 		drop();
 	}
-	
+
 	public bool bot_goto(point pos, float tol) {
 		if (isFlying()) {
 			return flyto(pos, tol, true);
@@ -178,11 +176,11 @@ public class Bot {
 			checkPower(rechargeLevel);
 			checkShields(0.5);
 			goto(pos);
-			
+
 			return true;
 		}
 	}
-	
+
 	public bool flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
 			bool refit;
@@ -190,42 +188,42 @@ public class Bot {
 			refit = checkPower(rechargeLevel) || refit;
 			refit = checkShields(0.5) || refit;
 			if (refit && breakOnRefit) return false;
-			
+
 			moveTo(pos, land, -1);
 			wait(0.1);
 		}
-		
+
 		motor(0,0);
 		return true;
 	}
-	
+
 	public bool follow(object target, float dis, int matchZ) {
-		
+
 		while(true) {
 			if (target == null or !target.isAlive()) {
 				return false;
 			}
-			
+
 			if (distance(me.position, target.position) < dis &&
 			    abs(direction(target.position)) < 5) {
 				return true;
 			}
-			
+
 			bool refit;
 			refit = checkTemperature();
 			refit = checkPower(rechargeLevel) || refit;
 			refit = checkShields(0.5) || refit;
 			if (refit && breakOnRefit) return false;
-			
+
 			point p = target.position;
 			p.z += 10;
 			moveTo(p, false, matchZ);
 			wait(0.1);
 		}
 	}
-	
+
 	bool checkPower(float minLevel) {
-		
+
 		//check for out of power
 		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
 			object o = radar(PowerStation);
@@ -273,27 +271,27 @@ public class Bot {
 					return false;
 				}
 			}
-			
+
 			//succesful charge, check to see if we should also repair
 			o = radar(RepairCenter);
 			if (o != null && distance2d(me.position, o.position) < 100) {
 				checkShields(0.90);
 			}
-			
+
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	bool checkShields(float minLevel) {
 		object o = radar(RepairCenter);
 		if (o == null) return false;
-		
+
 		if (state == NORMAL && me.shieldLevel < minLevel) {
 			message("Repairing...");
 			state = REPAIRING;
-			
+
 			bool oldRefit = breakOnRefit;
 			breakOnRefit = false;
 			bot_goto(o.position, 1);
@@ -301,22 +299,22 @@ public class Bot {
 			while(me.shieldLevel < 1) {
 				wait(1);
 			}
-			
+
 			state = NORMAL;
 			message("Reparing done.");
-			
+
 			//check to see if we should also recharge
 			o = radar(PowerStation);
 			if (o != null && distance2d(me.position, o.position) < 100) {
 				checkPower(0.75);
 			}
-			
+
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	bool checkTemperature() {
 		//check for jet overheat
 		if (state != COOLDOWN && me.temperature > 0.7) {
@@ -336,20 +334,20 @@ public class Bot {
 			}
 			state = oldState;
 			message("Cooldown done.");
-			
+
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	public void moveTo(point pos, bool land, int matchZ) {
-		
+
 		//check for stuck
 		if (distance(me.position, lastPos) < 0.25) {
 			if (stuckCount++ >= 10) {
 				message("stuck!");
-				
+
 				//try moving around it
 				jet(1);
 				motor(-1,-1);
@@ -363,14 +361,14 @@ public class Bot {
 			stuckCount = 0;
 			lastPos = me.position;
 		}
-		
+
 		//Set motors
 		float ml, mr;
-		
+
 		float d = distance2d(me.position, pos);
 		float moveMult = 0.2;
 		if (me.altitude > 0) moveMult = 0.05;
-		
+
 		if (land) {
 			ml = d * moveMult;
 			mr = d * moveMult;
@@ -378,23 +376,23 @@ public class Bot {
 			ml = 1;
 			mr = 1;
 		}
-		
+
 		if (ml > 1) ml = 1;
 		if (mr > 1) mr = 1;
-		
+
 		float strength = direction(pos) / 45;
 		ml += strength * -1;
 		mr += strength;
-		
+
 		motor(ml, mr);
-		
+
 		//Jet
-		
+
 		//check terain height
 		float alt = topo(me.position);
 		if (alt < 0) alt = 0;
 		float fly;
-		
+
 		if (matchZ > 0 && d < matchZ) {
 			if (pos.z < alt + 2) {
 				fly = alt + 2 - me.position.z;
@@ -413,7 +411,7 @@ public class Bot {
 				fly = -10;
 			}
 		}
-		
+
 		jet(fly * 0.1);
 	}
 }

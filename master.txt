@@ -1,37 +1,42 @@
-//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
-
 extern void object::Master() {}
 
 public class Goal {
 	static int NONE = 0;
 	static int IN_PROGRESS = 1;
 	static int DONE = 2;
-	
+
 	static Const const = new Const();
-	
+
 	string type;
 	int botType;
 	string[] params;
 	int status = 0; //NONE
 	Goal[] requirements = null;
-	
+
 	void Goal(string _type, int _botType, string _params) {
+		message("constructor");
 		CommandCenter command = new CommandCenter();
+		message("command inited");
 		SlaveInfo actor;
-		int rNeeded;
+		int[] rNeeded;
 		object o;
-		
+
 		type = _type;
 		botType = _botType;
+		message(_params);
 		params = split(_params);
-		
+		message("" + params);
+
 		//check for prereqs
 
 		//make sure we have the bot required for the task
+		message("finding actor");
 		actor = command.getFreeSlave(_botType);
 		if (actor == null) {
+			message("need to build bot");
 			addSubGoal(new Goal("buildBot", WheeledGrabber, ""+botType));
 		}
+		message("actor found");
 
 		if (type == "buildBot") {
 			//ensure research
@@ -40,26 +45,26 @@ public class Goal {
 			//ensure factory
 			ensureBuilding(BotFactory);
 			//assume we have titanium and power cell for now
-			
+
 		} else if (type == "buildBuilding") {
 			//TODO: check if the building type is available
 
 			//assume we have the titanium
-			
+
 		} else if (type == "research") {
-			rNeeded = strval(params[0]);
-			//remove research already completed
-			rNeeded &= ~info(const.INFO_RESEARCH_DONE);
-			if (rNeeded == 0) {
-				status = DONE;
-				return;
-			}
-			//make sure needed research is available on this level
-			rNeeded = strval(params[0]);
-			if ((rNeeded & ~info(const.INFO_RESEARCH_AVAILABLE)) != 0) {
-				message("Research not available!", DisplayError);
-				return;
-			}
+			// rNeeded = strval(params[0]);
+			// //remove research already completed
+			// rNeeded &= ~info(const.INFO_RESEARCH_DONE);
+			// if (rNeeded == 0) {
+			// 	status = DONE;
+			// 	return;
+			// }
+			// //make sure needed research is available on this level
+			// rNeeded = strval(params[0]);
+			// if ((rNeeded & ~info(const.INFO_RESEARCH_AVAILABLE)) != 0) {
+			// 	message("Research not available!", DisplayError);
+			// 	return;
+			// }
 
 			//make sure we have a research center
 			ensureBuilding(ResearchCenter);
@@ -101,7 +106,7 @@ public class Goal {
 								""+buildingType));
 		}
 	}
-	
+
 	void addSubGoal(Goal subGoal) {
 		if (subGoal.status == NONE) {
 			requirements[sizeof(requirements)] = subGoal;
@@ -113,9 +118,9 @@ public void object::performGoal(Goal goal) {
 	string type = goal.type;
 	string[] params;
 	params = goal.params;
-	
+
 	if (type == "research") {
-		this.research(strval(params[0]));
+		this.performResearch(strval(params[0]));
 	} else if (type == "buildBot") {
 		buildBot(strval(params[0]));
 	} else if (type == "buildBuilding") {
@@ -134,10 +139,11 @@ public void object::performGoal(Goal goal) {
 public string[] split(string in) {
 	string[] res;
 	int count = 0;
-	
+
 	while(true) {
 		int loc = strfind(in, ",");
-		if (loc == nan) break;
+		message("" + loc);
+		if (loc == -1) break;
 		res[count++] = strleft(in, loc);
 		in = strmid(in, loc + 1);
 	}
@@ -148,11 +154,11 @@ public string[] split(string in) {
 public class SlaveInfo {
 	static int FREE = 0;
 	static int BUSY = 1;
-	
+
 	object bot;
 	int status;
 	Goal goal;
-	
+
 	void SlaveInfo(object slaveBot) {
 		bot = slaveBot;
 		status = FREE;
@@ -168,9 +174,10 @@ public class CommandCenter {
 	static bool staticInit = true;
 
 	synchronized void addGoal(string type, int botType, string params) {
+		message("adding goal: " + type);
 		goals[sizeof(goals)] = new Goal(type, botType, params);
 	}
-	
+
 	synchronized void resetGoals() {
 		Goal[] empty;
 		goals = empty;
@@ -195,7 +202,7 @@ public class CommandCenter {
 		completed = true;
 	}
 	void checkForUnregisteredSlaves(object that) {
-		
+
 		float minDis = 0;
 		while (true) {
 			object o = radar(const.ALL_BOTS, 1, 360, minDis, 100);
@@ -204,8 +211,8 @@ public class CommandCenter {
 				if (!isRegistered(o)) {
 					message("Registering slave: " + o.category, DisplayInfo);
 					int ret = 0;
-					ret += loadprogram(o, 1, "program\\slave.txt");
-					ret += runprogram(o, 1);
+					ret += o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
+					// ret += runprogram(o, 1);
 					if (ret == 0) {
 						while (!isRegistered(o)) wait(1);
 					} else {
@@ -213,21 +220,21 @@ public class CommandCenter {
 					}
 				}
 			}
-			
-			minDis = distance(that.position, o.position) + 0.05; 
+
+			minDis = distance(that.position, o.position) + 0.05;
 		}
 	}
-	
+
 	bool isRegistered(object slaveBot) {
 		for (int i = 0; i < sizeof(slaves); i++) {
 			if (slaves[i].bot == slaveBot) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	synchronized SlaveInfo registerSlave(object slaveBot) {
 		//check to see if we already have this slave
 		for (int i = 0; i < sizeof(slaves); i++) {
@@ -236,21 +243,21 @@ public class CommandCenter {
 				return slaves[i];
 			}
 		}
-		
+
 		//register new slave
 		SlaveInfo newInfo = new SlaveInfo(slaveBot);
 		slaves[sizeof(slaves)] = newInfo;
 		return newInfo;
 	}
-	
+
 	SlaveInfo getFreeSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
 			if(slaves[i].status == 0 /*FREE*/ && slaves[i].bot.category == type) return slaves[i];
 		}
-		
+
 		return null;
 	}
-	
+
 	SlaveInfo waitFreeSlave(int type) {
 		SlaveInfo slave;
 		while(true) {
@@ -261,20 +268,20 @@ public class CommandCenter {
 	}
 }
 
-public void object::slave() 
+public void object::slave()
 {
 	object o = radar(BotFactory);
 	if (o != null && distance(position, o.position) < 2) {
 		//back out of the bot factory
 		move(-7);
 	}
-	
+
 	//register as a slave
 	CommandCenter command = new CommandCenter();
 	object that = this;
 	//message(""+that);
 	SlaveInfo info = command.registerSlave(that);
-	
+
 	while (true) {
 		while(info.goal == null) {
 			info.goal = command.nextGoal(that.category);
@@ -284,7 +291,7 @@ public void object::slave()
 		}
 
 		message("New goal: " + info.goal.type, DisplayInfo);
-		
+
 		//mark busy
 		info.status = info.BUSY;
 		that.performGoal(info.goal);
