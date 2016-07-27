@@ -16,6 +16,7 @@ public class Goal {
 	void Goal(string _type, int _botType, string _params) {
 		CommandCenter command = new CommandCenter();
 		SlaveInfo actor;
+		object o;
 
 		type = _type;
 		botType = _botType;
@@ -184,14 +185,14 @@ public class CommandCenter {
 
 		float minDis = 0;
 		while (true) {
-			object o = radar(const.ALL_BOTS, 1, 360, minDis, 100);
+			object o = radar(const.ALL_BOTS, 0, 360, minDis, 1000, 1, FilterFriendly);
 			if (o == null) return;
 			if (o != that) {
 				if (!isRegistered(o)) {
 					message("Registering slave: " + o.category, DisplayInfo);
 					int ret = 0;
 					ret += o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
-					// ret += runprogram(o, 1);
+					ret += o.runProgram(1);
 					if (ret == 0) {
 						while (!isRegistered(o)) wait(1);
 					} else {

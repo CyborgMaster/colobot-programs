@@ -8,7 +8,7 @@ extern void object::P1L3() {
 
 	object that = this;
 	command.registerSlave(that);
-	//command.checkForUnregisteredSlaves(that);
+	command.checkForUnregisteredSlaves(that);
 
 	command.resetGoals();
 	addGoals(command);
