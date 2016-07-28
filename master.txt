@@ -182,10 +182,9 @@ public class CommandCenter {
 		completed = true;
 	}
 	void checkForUnregisteredSlaves(object that) {
-
 		float minDis = 0;
 		while (true) {
-			object o = radar(const.ALL_BOTS, 0, 360, minDis, 1000, 1, FilterFriendly);
+			object o = radar(const.ALL_BOTS, 0, 360, minDis, 1000, 1, that.team);
 			if (o == null) return;
 			if (o != that) {
 				if (!isRegistered(o)) {
