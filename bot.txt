@@ -145,7 +145,7 @@ public class Bot {
 		object o;
 
 		while (true) {
-			o = search(category, searchCenter); //, minDistance);
+			o = search(category, searchCenter, minDistance);
 			if (o != null) break;
 			if (!shouldWait) return false;
 			wait(0.25);
