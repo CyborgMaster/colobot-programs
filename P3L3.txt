@@ -1,0 +1,17 @@
+void addGoals(CommandCenter command) {
+	command.addGoal("research", WheeledGrabber, ""+integer(ResearchShooter));
+}
+
+extern void object::P2L4() {
+	CommandCenter command = new CommandCenter();
+
+	object that = this;
+	command.registerSlave(that);
+	command.checkForUnregisteredSlaves(that);
+
+	command.resetGoals();
+	addGoals(command);
+
+	//run slave script
+	slave();
+}
