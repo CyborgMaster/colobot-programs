@@ -50,12 +50,23 @@ public void object::buildBuilding(int type) {
 	me.get(Titanium, that.position, 0, false);
 
 	object o = radar(SpaceShip);
-	point p1 = findBuildingSpot(o.position, 25);
+	point p1;
+	if (o != null) {
+		p1 = findBuildingSpot(o.position, 25);
+	} else {
+		p1 = findBuildingSpot(this.position, 0);
+	}
 
 	me.bot_goto(p1, 1);
 	drop();
 
-	float a = normalize(angle(o.position, p1) + 180);
+	float a;
+	if (o != null) {
+		a = normalize(angle(o.position, p1) + 180);
+	} else {
+		a = normalize(this.orientation + 180);
+	}
+
 	point p2 = alongDirection(p1, a, 8);
 	me.bot_goto(p2, 1);
 	turn(direction(p1));
@@ -172,8 +183,9 @@ point findShipSpot() {
 point findBuildingSpot(point origin, float minDist) {
 	int stride = 3;
 	point p = origin;
+	int start = minDist / stride;
 
-	for (int side = 1; side < 50; side++) {
+	for (int side = start; side < 50; side++) {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
 			if (isBuildingSpot(p, origin, minDist)) return p;

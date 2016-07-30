@@ -1,6 +1,4 @@
-//-*- mode: c++; indent-tabs-mode: t; tab-width: 4; local-preserve-whitespace: t; -*-
-
-extern void object::SlaveBot() 
+extern void object::SlaveBot()
 {
 	slave();
 }

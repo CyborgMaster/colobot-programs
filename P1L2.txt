@@ -1,0 +1,18 @@
+void addGoals(CommandCenter command) {
+	command.addGoal("buildBuilding", WheeledGrabber, ""+integer(ResearchCenter));
+	command.addGoal("buildBuilding", WheeledGrabber, ""+integer(BotFactory));
+}
+
+extern void object::P1L3() {
+	CommandCenter command = new CommandCenter();
+
+	object that = this;
+	command.registerSlave(that);
+	//command.checkForUnregisteredSlaves(that);
+
+	command.resetGoals();
+	addGoals(command);
+
+	//run slave script
+	slave();
+}
