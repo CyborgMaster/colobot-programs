@@ -50,7 +50,7 @@ public void object::buildBuilding(int type) {
 	me.get(Titanium, that.position, 0, false);
 
 	object o = radar(SpaceShip);
-	point p1 = space(o.position, 8, 50, 8);
+	point p1 = findBuildingSpot(o.position, 25);
 
 	me.bot_goto(p1, 1);
 	drop();
@@ -166,4 +166,41 @@ point findShipSpot() {
 			if (distance2d(p, o.position) > size) return p;
 		}
 	}
+}
+
+
+point findBuildingSpot(point origin, float minDist) {
+	int stride = 3;
+	point p = origin;
+
+	for (int side = 1; side < 50; side++) {
+		p.y = origin.y - stride * side;
+		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
+			if (isBuildingSpot(p, origin, minDist)) return p;
+		}
+
+		p.x = origin.x + stride * side;
+		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
+			if (isBuildingSpot(p, origin, minDist)) return p;
+		}
+
+		p.y = origin.y + stride * side;
+		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
+			if (isBuildingSpot(p, origin, minDist)) return p;
+		}
+
+		p.x = origin.x - stride * side;
+		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
+			if (isBuildingSpot(p, origin, minDist)) return p;
+		}
+	}
+}
+
+bool isBuildingSpot(point p, point origin, float minDist) {
+	if (topo(p) < 0) return false;
+	if (distance2d(p, origin) < minDist) return false;
+	object o = search(Any, p);
+	if (distance2d(p, o.position) < 5) return false;
+	if (flatground(p, 5) < 4.9) return false;
+	return true;
 }
