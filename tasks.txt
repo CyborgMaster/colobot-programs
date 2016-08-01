@@ -52,7 +52,7 @@ public void object::buildBuilding(int type) {
 	object o = radar(SpaceShip);
 	point p1;
 	if (o != null) {
-		p1 = findBuildingSpot(o.position, 25);
+		p1 = findBuildingSpot(o.position, 30);
 	} else {
 		p1 = findBuildingSpot(this.position, 0);
 	}
@@ -144,43 +144,9 @@ public void object::performResearch(int type) {
 	}
 }
 
-public class SpotChecker {
-	public bool check(point p) {
-		message("Not implemented");
-		return false;
-	}
-}
-
-point findSpot(SpotChecker checker, point origin, float minDist, int stride) {
-	point p = origin;
-	int start = minDist / stride;
-
-	for (int side = start; side < 50; side++) {
-		p.y = origin.y - stride * side;
-		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
-			if (checker.check(p)) return p;
-		}
-
-		p.x = origin.x + stride * side;
-		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
-			if (checker.check(p)) return p;
-		}
-
-		p.y = origin.y + stride * side;
-		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
-			if (checker.check(p)) return p;
-		}
-
-		p.x = origin.x - stride * side;
-		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
-			if (checker.check(p)) return p;
-		}
-	}
-}
-
 point findShipSpot() {
 	object o = radar(SpaceShip);
-	findSpot(new ShipSpotChecker(), o.position, 0, 1);
+	return findSpot(new ShipSpotChecker(), o.position, 0, 1);
 }
 
 public class ShipSpotChecker extends SpotChecker {
@@ -191,14 +157,14 @@ public class ShipSpotChecker extends SpotChecker {
 }
 
 point findBuildingSpot(point origin, float minDist) {
-	findSpot(new BuildingSpotChecker(), origin, minDist, 3);
+	return findSpot(new BuildingSpotChecker(), origin, minDist, 3);
 }
 
 public class BuildingSpotChecker extends SpotChecker {
 	public bool check(point p) {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
-		if (distance2d(p, o.position) < 5) return false;
+		if (distance2d(p, o.position) < 10) return false;
 		if (flatground(p, 5) < 4.9) return false;
 		return true;
 	}

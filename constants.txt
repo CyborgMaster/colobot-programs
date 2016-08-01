@@ -4,35 +4,45 @@ public class Const {
 	static bool staticInit = true;
 
 	static float FLYING_RANGE = 1500;
-
 	static int[] ALL_BOTS;
+	static int[] ALL_ALIENS;
 
 	public void Const() {
 		if (staticInit) {
-			int []a = {
-			WheeledGrabber,
-			TrackedGrabber,
-			WingedGrabber,
-			LeggedGrabber,
-			WheeledShooter,
-			TrackedShooter,
-			WingedShooter,
-			LeggedShooter,
-			WheeledOrgaShooter,
-			TrackedOrgaShooter,
-			WingedOrgaShooter,
-			LeggedOrgaShooter,
-			WheeledSniffer,
-			TrackedSniffer,
-			WingedSniffer,
-			LeggedSniffer,
-			Thumper,
-			PhazerShooter,
-			Recycler,
-			Shielder,
-			Subber
+			int[] a1 = {
+				WheeledGrabber,
+				TrackedGrabber,
+				WingedGrabber,
+				LeggedGrabber,
+				WheeledShooter,
+				TrackedShooter,
+				WingedShooter,
+				LeggedShooter,
+				WheeledOrgaShooter,
+				TrackedOrgaShooter,
+				WingedOrgaShooter,
+				LeggedOrgaShooter,
+				WheeledSniffer,
+				TrackedSniffer,
+				WingedSniffer,
+				LeggedSniffer,
+				Thumper,
+				PhazerShooter,
+				Recycler,
+				Shielder,
+				Subber
 			};
-			ALL_BOTS = a;
+			ALL_BOTS = a1;
+
+			int[] a2 = {
+				AlienQueen,
+				AlienAnt,
+				AlienSpider,
+				AlienWasp,
+				AlienWorm
+			};
+			ALL_ALIENS = a2;
+
 			staticInit = false;
 		}
 	}

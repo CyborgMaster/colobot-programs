@@ -11,65 +11,73 @@ public bool object::isAlive() {
 	return search(category, position) == this;
 }
 
-public point nearestSafeSpot(point origin, float minDis) {
-	int stride = 10;
-	int aliens[];
-	aliens[0] = AlienQueen;
-	aliens[1] = AlienAnt;
-	aliens[2] = AlienSpider;
-	aliens[3] = AlienWasp;
-	aliens[4] = AlienWorm;
-
-	if (isSpotSafe(origin, aliens, minDis)) {
-		return origin;
+public class SpotChecker {
+	public bool check(point p) {
+		message("Not implemented");
+		return false;
 	}
+}
 
-	point p;
+public point findSpot(SpotChecker checker, point origin, float minDist, int stride) {
+	point p = origin;
+	int start = minDist / stride;
 
-	for (int side = 1; side < 50; side++) {
+	for (int side = start; side < 50; side++) {
 		p.y = origin.y - stride * side;
 		for (p.x = origin.x - stride * side; p.x < origin.x + 0.1 + stride * side; p.x += stride) {
-			if (isSpotSafe(p, aliens, minDis)) {
-				return p;
-			}
+			if (checker.check(p)) return p;
 		}
 
 		p.x = origin.x + stride * side;
 		for (p.y = origin.y - stride * side; p.y < origin.y + 0.1 + stride * side; p.y += stride) {
-			if (isSpotSafe(p, aliens, minDis)) {
-				return p;
-			}
+			if (checker.check(p)) return p;
 		}
 
 		p.y = origin.y + stride * side;
 		for (p.x = origin.x + stride * side; p.x > origin.x - 0.1 - stride * side; p.x -= stride) {
-			if (isSpotSafe(p, aliens, minDis)) {
-				return p;
-			}
+			if (checker.check(p)) return p;
 		}
 
 		p.x = origin.x - stride * side;
 		for (p.y = origin.y + stride * side; p.y > origin.y - 0.1 - stride * side; p.y -= stride) {
-			if (isSpotSafe(p, aliens, minDis)) {
-				return p;
-			}
+			if (checker.check(p)) return p;
 		}
 	}
 }
 
-bool isSpotSafe(point p, int[] enemies, float minDis) {
-	if (topo(p) < 0.5 || flatground(p, 2) < 1) return false;
-	object o = search(enemies, p);
-	if (o == null || distance2d(p, o.position) > minDis) {
+point nearestSafeSpot(point origin, float minDist) {
+	return findSpot(new SafeSpotChecker(minDist), origin, 0, 10);
+}
+
+public class SafeSpotChecker extends SpotChecker {
+	static Const const = new Const();
+	float minDistToEnemy;
+
+	void SafeSpotChecker(float _minDistToEnemy) {
+		minDistToEnemy = _minDistToEnemy;
+	}
+
+	public bool check(point p) {
+		if (topo(p) < 0.5) return false;
+		if (flatground(p, 2) < 1) return false;
+		object o = search(const.ALL_ALIENS, p);
+		if (o != null && distance2d(p, o.position) < minDistToEnemy) return false;
 		return true;
 	}
 }
 
 public float angle(point pointA, point pointB)
 {
+	if (pointB.x - pointA.x == 0) {
+		if (pointB.y - pointA.y > 0) {
+			return 90;
+		} else {
+			return 270;
+		}
+	}
+
 	float offset = 0;
-	if ((pointB.x - pointA.x) < 0)
-	{
+	if ((pointB.x - pointA.x) < 0) {
 		offset = 180;
 	}
 	return offset + atan((pointB.y - pointA.y) / (pointB.x - pointA.x));
