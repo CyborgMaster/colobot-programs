@@ -1,0 +1,40 @@
+public class Base {
+	public void foo() {
+		message("foo");
+	}
+
+	public void greet(string name) {
+		message("Hi " + name);
+	}
+}
+
+public class Child extends Base {
+	public void greet(string name) {
+		super.greet("AWESOME " + name);
+	}
+}
+
+public class Grandchild extends Child {
+	public void greet(string name) {
+		super.greet("lame " + name);
+	}
+}
+
+extern void test() {
+	Grandchild c = new Grandchild();
+	Base b = c;
+	c.greet("jeremy");
+	c.foo();
+	b.greet("jeremy2");
+	b.foo();
+
+	Base b2;
+	Grandchild g;
+	b2 = new Grandchild();
+	g = b2;
+
+	Base b3 = new Child();
+	Grandchild c3 = b3;
+
+	Child c4 = new Base();
+}
