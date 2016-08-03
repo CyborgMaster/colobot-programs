@@ -1,152 +1,5 @@
 extern void object::Master() {}
 
-public class Goal {
-	static int NONE = 0;
-	static int IN_PROGRESS = 1;
-	static int DONE = 2;
-
-	static Const const = new Const();
-
-	string type;
-	int botType;
-	string[] params;
-	int status = 0; //NONE
-	Goal[] requirements = null;
-
-	void Goal(string _type, int _botType, string _params) {
-		CommandCenter command = new CommandCenter();
-		SlaveInfo actor;
-		object o;
-
-		type = _type;
-		botType = _botType;
-		params = split(_params);
-
-		//check for prereqs
-
-		//make sure we have the bot required for the task
-		actor = command.getFreeSlave(_botType);
-		if (actor == null) {
-			addSubGoal(new Goal("buildBot", WheeledGrabber, ""+botType));
-		}
-
-		if (type == "buildBot") {
-			ensureResearch(botResearch(strval(params[0])));
-			ensureBuilding(BotFactory);
-			//assume we have titanium and power cell for now
-
-		} else if (type == "buildBuilding") {
-			//TODO: check if the building type is available
-
-			//assume we have the titanium
-
-		} else if (type == "research") {
-			ensureBuilding(ResearchCenter);
-
-			//assume we have power cell for now
-		} else if (type == "load") {
-			//check for adequate power
-			if (actor != null) {
-				o = radar(strval(params[0]));
-				if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
-					distance2d(actor.bot.position, o.position)) {
-					ensureBuilding(PowerStation);
-				}
-			}
-		} else if (type == "board") {
-			//no sub goals
-		} else {
-			message("Unrecognized goal type! " + type, DisplayError);
-		}
-	}
-
-	Goal nextGoal(int bot) {
-		//check sub goals
-		for (int i = 0; i < sizeof(requirements); i++) {
-			if (requirements[i].status == NONE) {
-				return requirements[i].nextGoal(bot);
-			}
-		}
-
-		if (status == NONE && botType == bot) return this;
-		else return null;
-	}
-
-	void addSubGoal(Goal subGoal) {
-		if (subGoal.status == NONE) {
-			requirements[sizeof(requirements)] = subGoal;
-		}
-	}
-
-	void ensureBuilding(int buildingType) {
-		object o = radar(buildingType);
-		if (o == null) {
-			addSubGoal(new Goal("buildBuilding", WheeledGrabber,
-													""+buildingType));
-		}
-	}
-
-	void ensureResearch(int[] research) {
-		for (int i = 0; i < sizeof(research); i++) {
-			if (!researched(research[i])) {
-				// TODO: make sure research is available
-				addSubGoal(new Goal("research", WheeledGrabber, ""+integer(research[i])));
-			}
-		}
-	}
-}
-
-public void object::performGoal(Goal goal) {
-	string type = goal.type;
-	string[] params;
-	params = goal.params;
-
-	if (type == "research") {
-		this.performResearch(strval(params[0]));
-	} else if (type == "buildBot") {
-		buildBot(strval(params[0]));
-	} else if (type == "buildBuilding") {
-		this.buildBuilding(strval(params[0]));
-		//} else if (type == "collect") {
-		//collect(params);
-	} else if (type == "load") {
-		this.load(strval(params[0]), strval(params[1]));
-	} else if (type == "board") {
-		this.board();
-	} else {
-		message("Unrecognized task code: " + goal.type, DisplayError);
-	}
-}
-
-public string[] split(string in) {
-	string[] res;
-	int count = 0;
-
-	while(true) {
-		int loc = strfind(in, ",");
-		if (loc == -1) break;
-		res[count++] = strleft(in, loc);
-		in = strmid(in, loc + 1);
-	}
-	res[count] = in;
-	return res;
-}
-
-public class SlaveInfo {
-	static int FREE = 0;
-	static int BUSY = 1;
-
-	object bot;
-	int status;
-	Goal goal;
-
-	void SlaveInfo(object slaveBot) {
-		bot = slaveBot;
-		status = FREE;
-		goal = null;
-	}
-}
-
 public class CommandCenter {
 	static Const const = new Const();
 	static SlaveInfo slaves[] = null;
@@ -247,6 +100,139 @@ public class CommandCenter {
 	}
 }
 
+public class Goal {
+	static int NONE = 0;
+	static int IN_PROGRESS = 1;
+	static int DONE = 2;
+
+	static Const const = new Const();
+
+	string type;
+	int botType;
+	string[] params;
+	int status = 0; //NONE
+	Goal[] requirements = null;
+
+	void Goal(string _type, int _botType, string _params) {
+		CommandCenter command = new CommandCenter();
+		SlaveInfo actor;
+		object o;
+
+		type = _type;
+		botType = _botType;
+		params = split(_params);
+
+		//check for prereqs
+
+		//make sure we have the bot required for the task
+		actor = command.getFreeSlave(_botType);
+		if (actor == null) {
+			addSubGoal(new Goal("buildBot", WheeledGrabber, ""+botType));
+		}
+
+		if (type == "buildBot") {
+			ensureResearch(botResearch(strval(params[0])));
+			ensureBuilding(BotFactory);
+			//assume we have titanium and power cell for now
+
+		} else if (type == "buildBuilding") {
+			//TODO: check if the building type is available
+
+			//assume we have the titanium
+
+		} else if (type == "research") {
+			ensureBuilding(ResearchCenter);
+
+			//assume we have power cell for now
+		} else if (type == "load") {
+			//check for adequate power
+			if (actor != null) {
+				o = radar(strval(params[0]));
+				if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
+					distance2d(actor.bot.position, o.position)) {
+					ensureBuilding(PowerStation);
+				}
+			}
+		} else if (type == "board") {
+			//no sub goals
+		} else {
+			message("Unrecognized goal type! " + type, DisplayError);
+		}
+	}
+
+	Goal nextGoal(int bot) {
+		//check sub goals
+		for (int i = 0; i < sizeof(requirements); i++) {
+			if (requirements[i].status == NONE) {
+				return requirements[i].nextGoal(bot);
+			}
+		}
+
+		if (status == NONE && botType == bot) return this;
+		else return null;
+	}
+
+	void addSubGoal(Goal subGoal) {
+		if (subGoal.status == NONE) {
+			requirements[sizeof(requirements)] = subGoal;
+		}
+	}
+
+	void ensureBuilding(int buildingType) {
+		object o = radar(buildingType);
+		if (o == null) {
+			addSubGoal(new Goal("buildBuilding", WheeledGrabber,
+													""+buildingType));
+		}
+	}
+
+	void ensureResearch(int[] research) {
+		for (int i = 0; i < sizeof(research); i++) {
+			if (!researched(research[i])) {
+				// TODO: make sure research is available
+				addSubGoal(new Goal("research", WheeledGrabber, ""+integer(research[i])));
+			}
+		}
+	}
+}
+
+public class SlaveInfo {
+	static int FREE = 0;
+	static int BUSY = 1;
+
+	object bot;
+	int status;
+	Goal goal;
+
+	void SlaveInfo(object slaveBot) {
+		bot = slaveBot;
+		status = FREE;
+		goal = null;
+	}
+}
+
+public void object::performGoal(Goal goal) {
+	string type = goal.type;
+	string[] params;
+	params = goal.params;
+
+	if (type == "research") {
+		this.performResearch(strval(params[0]));
+	} else if (type == "buildBot") {
+		buildBot(strval(params[0]));
+	} else if (type == "buildBuilding") {
+		this.buildBuilding(strval(params[0]));
+		//} else if (type == "collect") {
+		//collect(params);
+	} else if (type == "load") {
+		this.load(strval(params[0]), strval(params[1]));
+	} else if (type == "board") {
+		this.board();
+	} else {
+		message("Unrecognized task code: " + goal.type, DisplayError);
+	}
+}
+
 public void object::slave()
 {
 	object o = radar(BotFactory);
@@ -278,4 +264,18 @@ public void object::slave()
 		//mark free
 		info.status = info.FREE;
 	}
+}
+
+public string[] split(string in) {
+	string[] res;
+	int count = 0;
+
+	while(true) {
+		int loc = strfind(in, ",");
+		if (loc == -1) break;
+		res[count++] = strleft(in, loc);
+		in = strmid(in, loc + 1);
+	}
+	res[count] = in;
+	return res;
 }

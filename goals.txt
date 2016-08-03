@@ -1,4 +1,4 @@
-extern void object::Tasks() {}
+extern void object::Goals() {}
 
 //gathers a type of resource to location
 void object::collect(float[] params) {
