@@ -1,6 +1,8 @@
 void addGoals(CommandCenter command) {
-	command.addGoal("buildBuilding", WheeledGrabber, ""+integer(ResearchCenter));
-	command.addGoal("buildBuilding", WheeledGrabber, ""+integer(BotFactory));
+	Goal g = new BuildBuildingGoal(ResearchCenter);
+	command.addGoal(g);
+	g = new BuildBuildingGoal(BotFactory);
+	command.addGoal(g);
 }
 
 extern void object::P1L3() {
