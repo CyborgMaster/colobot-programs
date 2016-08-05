@@ -5,13 +5,12 @@ extern void object::LevelBootstrap()
 	int res = 0;
 	res += this.loadProgram(10, "savegame/Jeremy/program/constants.txt");
 	res += this.loadProgram(9, "savegame/Jeremy/program/bot.txt");
-	res += this.loadProgram(8, "savegame/Jeremy/program/tasks.txt");
-	res += this.loadProgram(7, "savegame/Jeremy/program/master.txt");
-	res += this.loadProgram(2, "savegame/Jeremy/program/" + level + ".txt");
+	res += this.loadProgram(8, "savegame/Jeremy/program/master.txt");
+	res += this.loadProgram(3, "savegame/Jeremy/program/" + level + ".txt");
 
 	if (res > 0) {
 		message("Error loading programs!", DisplayError);
 	} else {
-		this.runProgram(2);
+		this.runProgram(3);
 	}
 }

@@ -13,8 +13,8 @@ public bool object::isAlive() {
 
 public class SpotChecker {
 	public bool check(point p) {
-		message("Not implemented");
-		return false;
+		message("Not implemented", DisplayError);
+		throw 1;
 	}
 }
 
@@ -46,7 +46,9 @@ public point findSpot(SpotChecker checker, point origin, float minDist, int stri
 }
 
 point nearestSafeSpot(point origin, float minDist) {
-	return findSpot(new SafeSpotChecker(minDist), origin, 0, 10);
+	// FIX: put this back to inline construction when melex fixes his code
+	SpotChecker c = new SafeSpotChecker(minDist);
+	return findSpot(c, origin, 0, 10);
 }
 
 public class SafeSpotChecker extends SpotChecker {

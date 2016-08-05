@@ -1,14 +1,107 @@
 extern void object::Master() {}
 
+public class Goal {
+	static int NONE = 0;
+	static int IN_PROGRESS = 1;
+	static int DONE = 2;
+
+	static Const const = new Const();
+	CommandCenter command;
+
+	int actorBotType;
+	int status = 0; //NONE
+	Goal[] requirements = null;
+
+	void Goal(int _actorBotType) {
+		actorBotType = _actorBotType;
+		command = new CommandCenter();
+
+		//check for prereqs
+		ensureBot();
+		this.checkRequirements();
+	}
+
+	void checkRequirements() {} // childclass method
+
+	void perform(Bot bot) { // childclass method
+		message("Perform not implemented", DisplayError);
+		throw 1;
+	}
+
+	void ensureBot() {
+		//make sure we have the bot required for the task
+		SlaveInfo actor = command.getFreeSlave(actorBotType);
+		if (actor == null) {
+			Goal g = new BuildBotGoal(actorBotType);
+			addSubGoal(g);
+		}
+	}
+
+	Goal nextGoal(int bot) {
+		//check sub goals
+		for (int i = 0; i < sizeof(requirements); i++) {
+			message("in next goal loop");
+			if (requirements[i].status == NONE) {
+				return requirements[i].nextGoal(bot);
+			}
+		}
+
+		if (status == NONE && actorBotType == bot) {
+			return this;
+		} else {
+			return null;
+		}
+	}
+
+	void addSubGoal(Goal subGoal) {
+		if (subGoal.status == NONE) {
+			requirements[sizeof(requirements)] = subGoal;
+		}
+	}
+
+	void ensureBuilding(int buildingType) {
+		object o = radar(buildingType);
+		if (o == null) {
+			Goal g = new BuildBuildingGoal(buildingType);
+			this.addSubGoal(g);
+		}
+	}
+
+	void ensureResearch(int[] research) {
+		for (int i = 0; i < sizeof(research); i++) {
+			if (!researched(research[i])) {
+				// TODO: make sure research is available
+				Goal g = new ResearchGoal(research[i]);
+				addSubGoal(g);
+			}
+		}
+	}
+}
+
+public class SlaveInfo {
+	static int FREE = 0;
+	static int BUSY = 1;
+
+	object bot;
+	int status;
+	Goal goal;
+
+	void SlaveInfo(object slaveBot) {
+		bot = slaveBot;
+		status = FREE;
+		goal = null;
+	}
+}
+
 public class CommandCenter {
 	static Const const = new Const();
-	static SlaveInfo slaves[] = null;
-	static Goal[] goals = null;
+	static SlaveInfo slaves[] = {};
+	static Goal[] goals = {};
 	static bool completed = false;
 	static bool staticInit = true;
 
-	synchronized void addGoal(string type, int botType, string params) {
-		goals[sizeof(goals)] = new Goal(type, botType, params);
+	synchronized void addGoal(Goal goal) {
+		goals[sizeof(goals)] = goal;
 	}
 
 	synchronized void resetGoals() {
@@ -82,7 +175,7 @@ public class CommandCenter {
 		return newInfo;
 	}
 
-	SlaveInfo getFreeSlave(int type) {
+	public SlaveInfo getFreeSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
 			if(slaves[i].status == 0 /*FREE*/ && slaves[i].bot.category == type) return slaves[i];
 		}
@@ -100,136 +193,224 @@ public class CommandCenter {
 	}
 }
 
-public class Goal {
-	static int NONE = 0;
-	static int IN_PROGRESS = 1;
-	static int DONE = 2;
+// Loads a certain number of a resource onto the ship
+public class LoadGoal extends Goal {
+	int resource;
+	int count;
 
-	static Const const = new Const();
+	void LoadGoal(int _resource, int _count) {
+		super.Goal(WheeledGrabber);
+		resource = _resource;
+		count = _count;
+	}
 
-	string type;
-	int botType;
-	string[] params;
-	int status = 0; //NONE
-	Goal[] requirements = null;
-
-	void Goal(string _type, int _botType, string _params) {
-		CommandCenter command = new CommandCenter();
-		SlaveInfo actor;
-		object o;
-
-		type = _type;
-		botType = _botType;
-		params = split(_params);
-
-		//check for prereqs
-
-		//make sure we have the bot required for the task
-		actor = command.getFreeSlave(_botType);
-		if (actor == null) {
-			addSubGoal(new Goal("buildBot", WheeledGrabber, ""+botType));
-		}
-
-		if (type == "buildBot") {
-			ensureResearch(botResearch(strval(params[0])));
-			ensureBuilding(BotFactory);
-			//assume we have titanium and power cell for now
-
-		} else if (type == "buildBuilding") {
-			//TODO: check if the building type is available
-
-			//assume we have the titanium
-
-		} else if (type == "research") {
-			ensureBuilding(ResearchCenter);
-
-			//assume we have power cell for now
-		} else if (type == "load") {
-			//check for adequate power
-			if (actor != null) {
-				o = radar(strval(params[0]));
-				if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
+	void checkRequirements() {
+		//check for adequate power
+		SlaveInfo actor = command.getFreeSlave(actorBotType);
+		if (actor != null) {
+			object o = radar(resource);
+			if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
 					distance2d(actor.bot.position, o.position)) {
-					ensureBuilding(PowerStation);
-				}
+				ensureBuilding(PowerStation);
 			}
-		} else if (type == "board") {
-			//no sub goals
+		}
+	}
+
+	void perform(Bot bot) {
+		bot.hoverHeight = 5;
+
+		object ship = radar(SpaceShip);
+
+		for (int i = 0; i < count; i++ ) {
+			bot.get(resource, ship.position, 30, false);
+
+			//find a good spot on the ship
+			point p = findShipSpot();
+			bot.bot_goto(p, 1);
+			drop();
+		}
+	}
+}
+
+// Boards the ship for takeoff
+public class BoardGoal extends Goal {
+	void BoardGoal(int botType) {
+		super.Goal(botType);
+	}
+
+	void perform(Bot bot) {
+		bot.hoverHeight = 5;
+
+		object ship = radar(SpaceShip);
+		point p = findShipSpot();
+		bot.bot_goto(p, 1);
+	}
+}
+
+public class BuildBuildingGoal extends Goal {
+	int buildingType;
+
+	void BuildBuildingGoal(int _buildingType) {
+		super.Goal(WheeledGrabber);
+		buildingType = _buildingType;
+	}
+
+	void checkRequirements() {
+		//TODO: check if the building type is available
+		//TODO: check we have the titanium
+	}
+
+	void perform(Bot bot) {
+		bot.get(Titanium, bot.me.position, 0, false);
+
+		object o = radar(SpaceShip);
+		point p1;
+		if (o != null) {
+			p1 = findBuildingSpot(o.position, 30);
 		} else {
-			message("Unrecognized goal type! " + type, DisplayError);
-		}
-	}
-
-	Goal nextGoal(int bot) {
-		//check sub goals
-		for (int i = 0; i < sizeof(requirements); i++) {
-			if (requirements[i].status == NONE) {
-				return requirements[i].nextGoal(bot);
-			}
+			p1 = findBuildingSpot(bot.me.position, 0);
 		}
 
-		if (status == NONE && botType == bot) return this;
-		else return null;
-	}
+		bot.bot_goto(p1, 1);
+		drop();
 
-	void addSubGoal(Goal subGoal) {
-		if (subGoal.status == NONE) {
-			requirements[sizeof(requirements)] = subGoal;
+		float a;
+		if (o != null) {
+			a = normalize(angle(o.position, p1) + 180);
+		} else {
+			a = normalize(bot.me.orientation + 180);
 		}
+
+		point p2 = alongDirection(p1, a, 8);
+		bot.bot_goto(p2, 1);
+		turn(direction(p1));
+		message("Building building '" + CatStr(buildingType) + "'", DisplayInfo);
+		build(buildingType);
+
+		do {
+			o = radar(buildingType, 0, 360, 0, 16);
+		} while (o == null);
+	}
+}
+
+public class BuildBotGoal extends Goal {
+	int botType;
+
+	void BuildBotGoal(int _botType) {
+		super.Goal(WheeledGrabber);
+		botType = _botType;
 	}
 
-	void ensureBuilding(int buildingType) {
-		object o = radar(buildingType);
+	void checkRequirements() {
+		ensureResearch(botResearch(botType));
+		ensureBuilding(BotFactory);
+		// TODO: check for have titanium and power cell
+	}
+
+	void perform(Bot bot) {
+		bot.get(Titanium, bot.me.position, 0, false);
+
+		object o = radar(BotFactory);
 		if (o == null) {
-			addSubGoal(new Goal("buildBuilding", WheeledGrabber,
-													""+buildingType));
+			message("No Robot Factory", DisplayError);
+			return;
 		}
+
+		bot.bot_goto(o.position, 1);
+		drop();
+		move(-5);
+
+		message("Building '" + CatStr(botType) + "'", DisplayInfo);
+		o.factory(botType);
+
+		point p = bot.me.position;
+		bot.get(PowerCell, bot.me.position, 0, false);
+		bot.bot_goto(p, 1);
+
+		do {
+			o = radar(botType, 0, 360, 0, 10);
+		} while (o == null);
+
+		bot.bot_goto(o.position, 1);
+		drop();
+
+		move(-5);
+		turn(90);
+		move(5);
+
+		//load slave program
+		o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
+		o.runProgram(1);
+	}
+}
+
+public class ResearchGoal extends Goal {
+	int researchType;
+
+	void ResearchGoal(int _researchType) {
+		super.Goal(WheeledGrabber);
+		researchType = _researchType;
 	}
 
-	void ensureResearch(int[] research) {
-		for (int i = 0; i < sizeof(research); i++) {
-			if (!researched(research[i])) {
-				// TODO: make sure research is available
-				addSubGoal(new Goal("research", WheeledGrabber, ""+integer(research[i])));
-			}
+	void checkRequirements() {
+		this.ensureBuilding(ResearchCenter);
+		// TODO: ensure power cell
+	}
+
+	void perform(Bot bot) {
+		object o = radar(ResearchCenter);
+		if (o == null) {
+			message("No Research Center", DisplayError);
+			return;
+		}
+
+		if (o.energyCell == null || o.energyCell.energyLevel < 1) {
+			message("Powering Research Center", DisplayInfo);
+			bot.get(PowerCell, bot.me.position, 0, false);
+			bot.bot_goto(o.position, 1);
+			motor(1,1);
+			wait(0.5);
+			motor(0,0);
+			drop();
+		}
+
+		message("Researching '" + researchString(researchType) + "'", DisplayInfo);
+		o.research(researchType);
+
+		while (o.energyCell.energyLevel > 0.01) {
+			wait(1);
 		}
 	}
 }
 
-public class SlaveInfo {
-	static int FREE = 0;
-	static int BUSY = 1;
+point findShipSpot() {
+	object o = radar(SpaceShip);
 
-	object bot;
-	int status;
-	Goal goal;
+	// FIX: put this back to inline construction when melex fixes his code
+	SpotChecker c = new ShipSpotChecker();
+	return findSpot(c, o.position, 0, 1);
+}
 
-	void SlaveInfo(object slaveBot) {
-		bot = slaveBot;
-		status = FREE;
-		goal = null;
+public class ShipSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		object o = search(Any, p);
+		return (distance2d(p, o.position) > 3);
 	}
 }
 
-public void object::performGoal(Goal goal) {
-	string type = goal.type;
-	string[] params;
-	params = goal.params;
+point findBuildingSpot(point origin, float minDist) {
+	// FIX: put this back to inline construction when melex fixes his code
+	SpotChecker c = new BuildingSpotChecker();
+	return findSpot(c, origin, minDist, 3);
+}
 
-	if (type == "research") {
-		this.performResearch(strval(params[0]));
-	} else if (type == "buildBot") {
-		buildBot(strval(params[0]));
-	} else if (type == "buildBuilding") {
-		this.buildBuilding(strval(params[0]));
-		//} else if (type == "collect") {
-		//collect(params);
-	} else if (type == "load") {
-		this.load(strval(params[0]), strval(params[1]));
-	} else if (type == "board") {
-		this.board();
-	} else {
-		message("Unrecognized task code: " + goal.type, DisplayError);
+public class BuildingSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		if (distance2d(p, o.position) < 10) return false;
+		if (flatground(p, 5) < 4.9) return false;
+		return true;
 	}
 }
 
@@ -254,11 +435,11 @@ public void object::slave()
 			command.checkCompletion();
 		}
 
-		message("New goal: " + info.goal.type, DisplayInfo);
+		message("New goal", DisplayInfo);
 
 		//mark busy
 		info.status = info.BUSY;
-		that.performGoal(info.goal);
+		info.goal.perform(new Bot(this));
 		info.goal.status = info.goal.DONE;
 		info.goal = null;
 		//mark free
@@ -266,16 +447,18 @@ public void object::slave()
 	}
 }
 
-public string[] split(string in) {
-	string[] res;
-	int count = 0;
+//gathers a type of resource to location
+void object::collect(float[] params) {
+	float resource = params[0];
+	point dropOff = new point(params[1], params[2]);
+	bool shouldWait = (params[3] != 0);
 
-	while(true) {
-		int loc = strfind(in, ",");
-		if (loc == -1) break;
-		res[count++] = strleft(in, loc);
-		in = strmid(in, loc + 1);
+	Bot bot(this);
+	bot.hoverHeight = 5;
+
+	while(bot.get(resource, dropOff, 30, shouldWait)) {
+		bot.deposit(dropOff);
 	}
-	res[count] = in;
-	return res;
+
+	message("No more!");
 }

@@ -133,3 +133,17 @@ public string printFlags(int flags) {
 	}
 	return s;
 }
+
+public string[] split(string in) {
+	string[] res;
+	int count = 0;
+
+	while(true) {
+		int loc = strfind(in, ",");
+		if (loc == -1) break;
+		res[count++] = strleft(in, loc);
+		in = strmid(in, loc + 1);
+	}
+	res[count] = in;
+	return res;
+}

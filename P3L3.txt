@@ -1,8 +1,9 @@
 void addGoals(CommandCenter command) {
-	command.addGoal("research", WheeledGrabber, ""+integer(ResearchShooter));
+	Goal g = new ResearchGoal(ResearchShooter);
+	command.addGoal(g);
 }
 
-extern void object::P2L4() {
+extern void object::P3L3() {
 	CommandCenter command = new CommandCenter();
 
 	object that = this;

@@ -7,140 +7,202 @@ void object::collect(float[] params) {
 	bool shouldWait = (params[3] != 0);
 
 	Bot me(this);
-	me.hoverHeight = 5;
+	bot.hoverHeight = 5;
 
-	while(me.get(resource, dropOff, 30, shouldWait)) {
-		me.deposit(dropOff);
+	while(bot.get(resource, dropOff, 30, shouldWait)) {
+		bot.deposit(dropOff);
 	}
 
 	message("No more!");
 }
 
-//loads a certain number of a resource onto the ship
-public void object::load(int resource, int count) {
-	object that = this;
-	Bot me(that);
-	me.hoverHeight = 5;
+// Loads a certain number of a resource onto the ship
+public class LoadGoal extends Goal {
+	int resource;
+	int count;
 
-	object ship = radar(SpaceShip);
+	LoadGoal(int _resource, int _count) {
+		super.Goal(WheeledGrabber);
+		resource = _resource;
+		count = _count;
+	}
 
-	for (int i = 0; i < count; i++ ) {
-		me.get(resource, ship.position, 30, false);
+	void checkRequirements() {
+		//check for adequate power
+		SlaveInfo actor = command.getFreeSlave(botType);
+		if (actor != null) {
+			o = radar(strval(params[0]));
+			if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
+					distance2d(actor.bot.position, o.position)) {
+				ensureBuilding(PowerStation);
+			}
+		}
+	}
 
-		//find a good spot on the ship
+	void perform(Bot bot) {
+		bot.hoverHeight = 5;
+
+		object ship = radar(SpaceShip);
+
+		for (int i = 0; i < count; i++ ) {
+			bot.get(resource, ship.position, 30, false);
+
+			//find a good spot on the ship
+			point p = findShipSpot();
+			bot.bot_goto(p, 1);
+			drop();
+		}
+	}
+}
+
+// Boards the ship for takeoff
+public class BoardGoal extends Goal {
+	public BoardGoal(int botType) {
+		super.BoardGoal(botType);
+	}
+
+	void perform(Bot bot) {
+		bot.hoverHeight = 5;
+
+		object ship = radar(SpaceShip);
 		point p = findShipSpot();
-		me.bot_goto(p, 1);
+		bot.bot_goto(p, 1);
+	}
+}
+
+public class BuildBuildingGoal extends Goal {
+	int buildingType;
+
+	BuildBuildingGoal(_buildingType) {
+		super.Goal(WheeledGrabber);
+		buildingType = _buildingType;
+	}
+
+	void checkRequirements() {
+		//TODO: check if the building type is available
+		//TODO: check we have the titanium
+	}
+
+	void perform(Bot bot) {
+		bot.get(Titanium, bot.me.position, 0, false);
+
+		object o = radar(SpaceShip);
+		point p1;
+		if (o != null) {
+			p1 = findBuildingSpot(o.position, 30);
+		} else {
+			p1 = findBuildingSpot(bot.me.position, 0);
+		}
+
+		bot.bot_goto(p1, 1);
 		drop();
+
+		float a;
+		if (o != null) {
+			a = normalize(angle(o.position, p1) + 180);
+		} else {
+			a = normalize(bot.me.orientation + 180);
+		}
+
+		point p2 = alongDirection(p1, a, 8);
+		bot.bot_goto(p2, 1);
+		turn(direction(p1));
+		message("Building building '" + CatStr(buildingType) + "'", DisplayInfo);
+		build(buildingType);
+
+		do {
+			o = radar(buildingType, 0, 360, 0, 16);
+		} while (o == null);
 	}
 }
 
-//boards the ship for takeoff
-public void object::board() {
-	Bot me(this);
-	me.hoverHeight = 5;
+public class BuildBotGoal extends Goal {
+	int botType;
 
-	object ship = radar(SpaceShip);
-	point p = findShipSpot();
-	me.bot_goto(p, 1);
-}
-
-public void object::buildBuilding(int type) {
-	object that = this;
-	Bot me(that);
-	me.get(Titanium, that.position, 0, false);
-
-	object o = radar(SpaceShip);
-	point p1;
-	if (o != null) {
-		p1 = findBuildingSpot(o.position, 30);
-	} else {
-		p1 = findBuildingSpot(this.position, 0);
+	BuildBotGoal(int _botType) {
+		super.Goal(WheeledGrabber);
+		botType = _botType;
 	}
 
-	me.bot_goto(p1, 1);
-	drop();
-
-	float a;
-	if (o != null) {
-		a = normalize(angle(o.position, p1) + 180);
-	} else {
-		a = normalize(this.orientation + 180);
+	void checkRequirements() {
+		ensureResearch(botResearch(strval(params[0])));
+		ensureBuilding(BotFactory);
+		// TODO: check for have titanium and power cell
 	}
 
-	point p2 = alongDirection(p1, a, 8);
-	me.bot_goto(p2, 1);
-	turn(direction(p1));
-	message("Building building '" + CatStr(type) + "'", DisplayInfo);
-	build(type);
+	void perform(Bot bot) {
+		bot.get(Titanium, bot.me.position, 0, false);
 
-	do {
-		o = radar(type, 0, 360, 0, 16);
-	} while (o == null);
-}
+		object o = radar(BotFactory);
+		if (o == null) {
+			message("No Robot Factory", DisplayError);
+			return;
+		}
 
-public void object::buildBot(int type){
-	object that = this;
-	Bot me(that);
-	me.get(Titanium, that.position, 0, false);
-
-	object o = radar(BotFactory);
-	if (o == null) {
-		message("No Robot Factory", DisplayError);
-		return;
-	}
-
-	me.bot_goto(o.position, 1);
-	drop();
-	move(-5);
-
-	message("Building '" + CatStr(type) + "'", DisplayInfo);
-	o.factory(type);
-
-	point p = that.position;
-	me.get(PowerCell, that.position, 0, false);
-	me.bot_goto(p, 1);
-
-	do {
-		o = radar(type, 0, 360, 0, 10);
-	} while (o == null);
-
-	me.bot_goto(o.position, 1);
-	drop();
-
-	move(-5);
-	turn(90);
-	move(5);
-
-	//load slave program
-	o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
-	o.runProgram(1);
-}
-
-public void object::performResearch(int type) {
-	object that = this;
-	Bot me(that);
-
-	object o = radar(ResearchCenter);
-	if (o == null) {
-		message("No Research Center", DisplayError);
-		return;
-	}
-
-	if (o.energyCell == null || o.energyCell.energyLevel < 1) {
-		message("Powering Research Center", DisplayInfo);
-		me.get(PowerCell, that.position, 0, false);
-		me.bot_goto(o.position, 1);
-		motor(1,1);
-		wait(0.5);
-		motor(0,0);
+		bot.bot_goto(o.position, 1);
 		drop();
+		move(-5);
+
+		message("Building '" + CatStr(botType) + "'", DisplayInfo);
+		o.factory(botType);
+
+		point p = bot.me.position;
+		bot.get(PowerCell, bot.me.position, 0, false);
+		bot.bot_goto(p, 1);
+
+		do {
+			o = radar(type, 0, 360, 0, 10);
+		} while (o == null);
+
+		bot.bot_goto(o.position, 1);
+		drop();
+
+		move(-5);
+		turn(90);
+		move(5);
+
+		//load slave program
+		o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
+		o.runProgram(1);
+	}
+}
+
+public class ResearchGoal extends Goal {
+	int researchType;
+
+	ResearchGoal(int _researchType) {
+		super.Goal(WheeledGrabber);
+		researchType = researchType;
 	}
 
-	message("Researching '" + researchString(type) + "'", DisplayInfo);
-	o.research(type);
+	void checkRequirements() {
+		ensureBuilding(ResearchCenter);
+		// TODO: ensure power cell
+	}
 
-	while (o.energyCell.energyLevel > 0.01) {
-		wait(1);
+	void performResearch(Bot bot) {
+		object o = radar(ResearchCenter);
+		if (o == null) {
+			message("No Research Center", DisplayError);
+			return;
+		}
+
+		if (o.energyCell == null || o.energyCell.energyLevel < 1) {
+			message("Powering Research Center", DisplayInfo);
+			bot.get(PowerCell, bot.me.position, 0, false);
+			bot.bot_goto(o.position, 1);
+			motor(1,1);
+			wait(0.5);
+			motor(0,0);
+			drop();
+		}
+
+		message("Researching '" + researchString(type) + "'", DisplayInfo);
+		o.research(type);
+
+		while (o.energyCell.energyLevel > 0.01) {
+			wait(1);
+		}
 	}
 }
 
