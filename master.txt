@@ -40,7 +40,6 @@ public class Goal {
 	Goal nextGoal(int bot) {
 		//check sub goals
 		for (int i = 0; i < sizeof(requirements); i++) {
-			message("in next goal loop");
 			if (requirements[i].status == NONE) {
 				return requirements[i].nextGoal(bot);
 			}
@@ -105,7 +104,7 @@ public class CommandCenter {
 	}
 
 	synchronized void resetGoals() {
-		Goal[] empty;
+		Goal[] empty = {};
 		goals = empty;
 	}
 
@@ -199,9 +198,9 @@ public class LoadGoal extends Goal {
 	int count;
 
 	void LoadGoal(int _resource, int _count) {
-		super.Goal(WheeledGrabber);
 		resource = _resource;
 		count = _count;
+		super.Goal(WheeledGrabber);
 	}
 
 	void checkRequirements() {
@@ -251,8 +250,8 @@ public class BuildBuildingGoal extends Goal {
 	int buildingType;
 
 	void BuildBuildingGoal(int _buildingType) {
-		super.Goal(WheeledGrabber);
 		buildingType = _buildingType;
+		super.Goal(WheeledGrabber);
 	}
 
 	void checkRequirements() {

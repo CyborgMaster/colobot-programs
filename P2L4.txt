@@ -1,5 +1,6 @@
 void addGoals(CommandCenter command) {
-	command.addGoal("load", WingedGrabber, integer(BlackBox)+",1");
+	Goal g = new LoadGoal(BlackBox, 1);
+	command.addGoal(g);
 }
 
 extern void object::P2L4() {
