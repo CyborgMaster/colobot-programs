@@ -204,10 +204,14 @@ public class LoadGoal extends Goal {
 	}
 
 	void checkRequirements() {
+		object ship = radar(SpaceShip);
+		object o = radar(resource);
+		if (distance2d(ship.position, o.position) > const.DRIVING_RANGE) {
+			actorBotType = WingedGrabber;
+		}
 		//check for adequate power
 		SlaveInfo actor = command.getFreeSlave(actorBotType);
 		if (actor != null) {
-			object o = radar(resource);
 			if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
 					distance2d(actor.bot.position, o.position)) {
 				ensureBuilding(PowerStation);
