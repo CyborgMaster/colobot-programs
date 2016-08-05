@@ -5,7 +5,7 @@ void addGoals(CommandCenter command) {
 	command.addGoal(g);
 }
 
-extern void object::P1L3() {
+extern void object::P1L2() {
 	CommandCenter command = new CommandCenter();
 
 	object that = this;

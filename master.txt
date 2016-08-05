@@ -23,15 +23,14 @@ public class Goal {
 
 	void checkRequirements() {} // childclass method
 
-	void perform(Bot bot) { // childclass method
+	bool perform(Bot bot) { // childclass method
 		message("Perform not implemented", DisplayError);
 		throw 1;
 	}
 
 	void ensureBot() {
 		//make sure we have the bot required for the task
-		SlaveInfo actor = command.getFreeSlave(actorBotType);
-		if (actor == null) {
+		if (!command.hasSlave(actorBotType)) {
 			Goal g = new BuildBotGoal(actorBotType);
 			addSubGoal(g);
 		}
@@ -182,6 +181,13 @@ public class CommandCenter {
 		return null;
 	}
 
+	public bool hasSlave(int type) {
+		for (int i = 0; i < sizeof(slaves); i++) {
+			if(slaves[i].bot.category == type) return true;
+		}
+		return false;
+	}
+
 	SlaveInfo waitFreeSlave(int type) {
 		SlaveInfo slave;
 		while(true) {
@@ -206,7 +212,8 @@ public class LoadGoal extends Goal {
 	void checkRequirements() {
 		object ship = radar(SpaceShip);
 		object o = radar(resource);
-		if (distance2d(ship.position, o.position) > const.DRIVING_RANGE) {
+		if (distance2d(ship.position, o.position) > const.DRIVING_RANGE &&
+				canresearch(ResearchWinged)) {
 			actorBotType = WingedGrabber;
 			ensureBot();
 		}
@@ -220,18 +227,28 @@ public class LoadGoal extends Goal {
 		}
 	}
 
-	void perform(Bot bot) {
+	bool perform(Bot bot) {
 		bot.hoverHeight = 5;
 
 		object ship = radar(SpaceShip);
 
 		for (int i = 0; i < count; i++ ) {
-			bot.get(resource, ship.position, 30, false);
+			bool success = bot.get(resource, ship.position, 30, false);
+			if (!success) { // Not reachable by wheeled
+				if (canresearch(ResearchWinged)) {
+					actorBotType = WingedGrabber;
+				} else {
+					actorBotType = TrackedGrabber;
+				}
+				ensureBot();
+				return false;
+			}
 
 			//find a good spot on the ship
 			point p = findShipSpot();
 			bot.bot_goto(p, 1);
 			drop();
+			return true;
 		}
 	}
 }
@@ -242,12 +259,13 @@ public class BoardGoal extends Goal {
 		super.Goal(botType);
 	}
 
-	void perform(Bot bot) {
+	bool perform(Bot bot) {
 		bot.hoverHeight = 5;
 
 		object ship = radar(SpaceShip);
 		point p = findShipSpot();
 		bot.bot_goto(p, 1);
+		return true;
 	}
 }
 
@@ -264,7 +282,7 @@ public class BuildBuildingGoal extends Goal {
 		//TODO: check we have the titanium
 	}
 
-	void perform(Bot bot) {
+	bool perform(Bot bot) {
 		bot.get(Titanium, bot.me.position, 0, false);
 
 		object o = radar(SpaceShip);
@@ -294,6 +312,8 @@ public class BuildBuildingGoal extends Goal {
 		do {
 			o = radar(buildingType, 0, 360, 0, 16);
 		} while (o == null);
+
+		return true;
 	}
 }
 
@@ -311,13 +331,13 @@ public class BuildBotGoal extends Goal {
 		// TODO: check for have titanium and power cell
 	}
 
-	void perform(Bot bot) {
+	bool perform(Bot bot) {
 		bot.get(Titanium, bot.me.position, 0, false);
 
 		object o = radar(BotFactory);
 		if (o == null) {
 			message("No Robot Factory", DisplayError);
-			return;
+			return false;
 		}
 
 		bot.bot_goto(o.position, 1);
@@ -345,6 +365,8 @@ public class BuildBotGoal extends Goal {
 		//load slave program
 		o.loadProgram(1, "savegame/Jeremy/program/slave.txt");
 		o.runProgram(1);
+
+		return true;
 	}
 }
 
@@ -361,11 +383,11 @@ public class ResearchGoal extends Goal {
 		// TODO: ensure power cell
 	}
 
-	void perform(Bot bot) {
+	bool perform(Bot bot) {
 		object o = radar(ResearchCenter);
 		if (o == null) {
 			message("No Research Center", DisplayError);
-			return;
+			return false;
 		}
 
 		if (o.energyCell == null || o.energyCell.energyLevel < 1) {
@@ -384,6 +406,8 @@ public class ResearchGoal extends Goal {
 		while (o.energyCell.energyLevel > 0.01) {
 			wait(1);
 		}
+
+		return true;
 	}
 }
 
@@ -443,8 +467,8 @@ public void object::slave()
 
 		//mark busy
 		info.status = info.BUSY;
-		info.goal.perform(new Bot(this));
-		info.goal.status = info.goal.DONE;
+		bool success = info.goal.perform(new Bot(this));
+		if (success) info.goal.status = info.goal.DONE;
 		info.goal = null;
 		//mark free
 		info.status = info.FREE;

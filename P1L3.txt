@@ -1,6 +1,8 @@
 void addGoals(CommandCenter command) {
-	command.addGoal("load", TrackedGrabber, integer(BlackBox)+",1");
-	command.addGoal("board", WheeledGrabber, "");
+	Goal g = new LoadGoal(BlackBox, 1);
+	command.addGoal(g);
+	g = new BoardGoal(WheeledGrabber);
+	command.addGoal(g);
 }
 
 extern void object::P1L3() {

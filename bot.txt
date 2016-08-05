@@ -161,7 +161,8 @@ public class Bot {
 			wait(0.25);
 		};
 
-		bot_goto(o.position, 2);
+		bool success = bot_goto(o.position, 2);
+		if (!success) return false;
 		turn(direction(o.position));
 		grab();
 		return true;
@@ -185,8 +186,13 @@ public class Bot {
 		} else {
 			checkPower(rechargeLevel);
 			checkShields(0.5);
-			goto(pos);
-
+			errmode(0);
+			int err = goto(pos);
+			errmode(1);
+			if (err != 0) {
+				message("Unreachable: " + err);
+				return false;
+			}
 			return true;
 		}
 	}
