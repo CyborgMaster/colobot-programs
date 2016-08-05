@@ -208,6 +208,7 @@ public class LoadGoal extends Goal {
 		object o = radar(resource);
 		if (distance2d(ship.position, o.position) > const.DRIVING_RANGE) {
 			actorBotType = WingedGrabber;
+			ensureBot();
 		}
 		//check for adequate power
 		SlaveInfo actor = command.getFreeSlave(actorBotType);
@@ -300,8 +301,8 @@ public class BuildBotGoal extends Goal {
 	int botType;
 
 	void BuildBotGoal(int _botType) {
-		super.Goal(WheeledGrabber);
 		botType = _botType;
+		super.Goal(WheeledGrabber);
 	}
 
 	void checkRequirements() {
