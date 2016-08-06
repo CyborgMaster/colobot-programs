@@ -161,6 +161,10 @@ public class Bot {
 			wait(0.25);
 		};
 
+		return get(o);
+	}
+
+  public bool get(object o) {
 		bool success = bot_goto(o.position, 2);
 		if (!success) return false;
 		turn(direction(o.position));
