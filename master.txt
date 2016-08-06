@@ -40,8 +40,8 @@ public class Stockpile {
 				items[i].status = items[i].RESERVED;
 				return items[i].item;
 			}
-			return null;
 		}
+		return null;
 	}
 }
 
@@ -105,10 +105,13 @@ public class Goal {
 		}
 		Goal g = ensureActorSubGoal.nextGoal(bot);
 		if (g != null) return g;
+		bool notReady = false;
 		for (int i = 0; i < sizeof(subGoals); i++) {
+			if (!subGoals[i].isComplete()) notReady = true;
 			g = subGoals[i].nextGoal(bot);
 			if (g != null) return g;
 		}
+		if (notReady) return null;
 		if (actorBotType == bot) return this;
 		return null;
 	}
@@ -613,18 +616,20 @@ public void object::slave()
 			info.goal = command.nextGoal(this.category);
 			if (info.goal != null) break;
 			wait(1);
-			// command.checkCompletion();
+			command.checkCompletion();
 		}
 
 		message("New goal", DisplayInfo);
 
-		//mark busy
 		info.status = info.BUSY;
 		info.goal.status = info.goal.IN_PROGRESS;
 		bool success = info.goal.perform(new Bot(this));
-		if (success) info.goal.status = info.goal.DONE;
+		if (success) {
+			info.goal.status = info.goal.DONE;
+		} else {
+			info.goal.status = info.goal.NONE;
+		}
 		info.goal = null;
-		//mark free
 		info.status = info.FREE;
 	}
 }
