@@ -4,7 +4,7 @@ public class Const {
 	static bool staticInit = true;
 
 	static float FLYING_RANGE = 1500;
-	static float DRIVING_RANGE = 200;
+	static float DRIVING_RANGE = 100;
 	static int[] ALL_BOTS;
 	static int[] ALL_ALIENS;
 

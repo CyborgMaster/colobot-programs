@@ -5,13 +5,13 @@ void addGoals(CommandCenter command) {
 
 extern void object::P3L3() {
 	CommandCenter command = new CommandCenter();
+	command.resetGoals();
+	addGoals(command);
 
 	object that = this;
 	command.registerSlave(that);
 	command.checkForUnregisteredSlaves(that);
 
-	command.resetGoals();
-	addGoals(command);
 
 	//run slave script
 	slave();
