@@ -278,18 +278,12 @@ public class BuildBuildingGoal extends Goal {
 	bool perform(Bot bot) {
 		bot.get(Titanium, bot.me.position, 0, false);
 
-		object o = radar(SpaceShip);
-		point p1;
-		if (o != null) {
-			p1 = findBuildingSpot(o.position, 30);
-		} else {
-			p1 = findBuildingSpot(bot.me.position, 0);
-		}
-
+		point p1 = findBuildingSpot();
 		bot.bot_goto(p1, 1);
 		drop();
 
 		float a;
+		object o = radar(SpaceShip);
 		if (o != null) {
 			a = normalize(angle(o.position, p1) + 180);
 		} else {
@@ -423,10 +417,17 @@ public class ShipSpotChecker extends SpotChecker {
 	}
 }
 
-point findBuildingSpot(point origin, float minDist) {
-	// FIX: put this back to inline construction when melex fixes his code
+point findBuildingSpot() {
+	Const const = new Const();
+	int BUILDING_SIZE = 3;
 	SpotChecker c = new BuildingSpotChecker();
-	return findSpot(c, origin, minDist, 3);
+
+	object ship = radar(SpaceShip);
+	if (ship != null) {
+		return findSpot(c, ship.position, 30, BUILDING_SIZE);
+	} else {
+		return findSpot(c, radar(const.ALL_BOTS).position, 0, BUILDING_SIZE);
+	}
 }
 
 public class BuildingSpotChecker extends SpotChecker {
@@ -486,4 +487,71 @@ void object::collect(float[] params) {
 	}
 
 	message("No more!");
+}
+
+public class StockpileItem {
+	static int FREE = 0;
+	static int RESERVED = 1;
+	int status;
+	object item;
+
+	void StockpileItem(object _item) {
+		item = _item;
+		status = FREE;
+	}
+}
+
+public class Stockpile {
+	int type; // Resource
+	point center;
+	StockpileItem[] items;
+
+	void Stockpile(int _type, point _center) {
+		type = _type;
+		center = _center;
+		object s = radar(SpaceShip);
+		object[] found = radarall(type, 0, 360, 0, 50);
+		for (int i = 0; i < sizeof(found); i++) {
+			items[sizeof(items)] = new StockpileItem(found[i]);
+		}
+	}
+
+	void add(object o) {
+		if (o.category != type) {
+			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
+			throw 1;
+		}
+		items[sizeof(items)] = new StockpileItem(o);
+	}
+
+	object reserve() {
+		for (int i = 0; i < sizeof(items); i++) {
+			if (items[i].status == items[i].FREE) {
+				items[i].status = items[i].RESERVED;
+				return items[i].item;
+			}
+			return null;
+		}
+	}
+}
+
+public class Base {
+	static Stockpile[] stockpiles;
+
+	synchronized object reserveItem(int type) {
+		return getStockpile(type).reserve();
+	}
+
+	synchronized Stockpile getStockpile(int type) {
+		for (int i = 0; i < sizeof(stockpiles); i++) {
+			if (stockpiles[i].type == type) return stockpiles[i];
+		}
+		return initStockpile(type);
+	}
+
+	synchronized Stockpile initStockpile(int type) {
+		Stockpile pile = new Stockpile(type, findBuildingSpot());
+		stockpiles[sizeof(stockpiles)] = pile;
+		return pile;
+	}
 }
