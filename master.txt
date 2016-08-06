@@ -72,7 +72,6 @@ public class Goal {
 	static int DONE = 2;
 
 	static Const const = new Const();
-	CommandCenter command = new CommandCenter();
 
 	int actorBotType = WheeledGrabber;
 	int status = 0; //NONE
@@ -134,6 +133,8 @@ public class Goal {
 
 public class EnsureBotGoal extends Goal {
 	int type;
+	CommandCenter command = new CommandCenter();
+
 	void EnsureBotGoal(int _type) {
 		type = _type;
 	}
@@ -551,11 +552,23 @@ public class GatherGoal extends Goal {
 		return status == DONE;
 	}
 
-	void initializeSubGoals() {}
+	void initializeSubGoals() {
+		if (type == PowerCell) {
+			subGoals[0] = new BuildBuildingGoal(PowerStation);
+		}
+	}
 
 	bool perform(Bot bot) {
-		bool found = bot.get(type, stockpile.center, 30, false);
-		if (!found) return false;
+		bool success = bot.get(type, stockpile.center, 30, false);
+		if (!success) { // Not reachable by wheeled
+			if (canresearch(ResearchWinged)) {
+				actorBotType = WingedGrabber;
+			} else {
+				actorBotType = TrackedGrabber;
+			}
+			ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+			return false;
+		}
 		object item = bot.me.load;
 		bot.deposit(stockpile.center);
 		stockpile.add(item);

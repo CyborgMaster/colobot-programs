@@ -10,8 +10,7 @@ extern void object::P3L3() {
 
 	object that = this;
 	command.registerSlave(that);
-	//command.checkForUnregisteredSlaves(that);
-
+	command.checkForUnregisteredSlaves(that);
 
 	//run slave script
 	slave();
