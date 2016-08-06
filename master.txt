@@ -47,6 +47,8 @@ public class Stockpile {
 
 public class Base {
 	static Stockpile[] stockpiles;
+	static bool hasEnergy = false;
+	static point energyLocation;
 
 	synchronized object reserveResource(int type) {
 		return getStockpile(type).reserve();
@@ -60,9 +62,26 @@ public class Base {
 	}
 
 	synchronized Stockpile initStockpile(int type) {
-		Stockpile pile = new Stockpile(type, findBuildingSpot());
+		Stockpile pile = new Stockpile(type, findBuildingSpot(Any));
 		stockpiles[sizeof(stockpiles)] = pile;
 		return pile;
+	}
+
+	synchronized point findBuildingSpot(int type) {
+		Const const = new Const();
+		int BUILDING_SIZE = 3;
+		SpotChecker c = new BuildingSpotChecker();
+
+		if (type == PowerStation) {
+			return findSpot(c, energyLocation, 0, 1);
+		}
+
+		object ship = radar(SpaceShip);
+		if (ship != null) {
+			return findSpot(c, ship.position, 30, BUILDING_SIZE);
+		} else {
+			return findSpot(c, radar(const.ALL_BOTS).position, 0, BUILDING_SIZE);
+		}
 	}
 }
 
@@ -115,20 +134,14 @@ public class Goal {
 		return null;
 	}
 
-	// Goal ensureBuilding(int buildingType) {
-	// 	if (radar(buildingType) != null) return null;
-	// 	return new BuildBuildingGoal(buildingType);
-	// }
-
-	// Goal ensureResearch(int[] research) {
-	// 	for (int i = 0; i < sizeof(research); i++) {
-	// 		if (!researched(research[i])) {
-	// 			// TODO: make sure research is available
-	// 			return new ResearchGoal(research[i]);
-	// 		}
-	// 	}
-	// 	return null;
-	// }
+	void upgradeActor() {
+		if (canresearch(ResearchWinged)) {
+			actorBotType = WingedGrabber;
+		} else {
+			actorBotType = TrackedGrabber;
+		}
+		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+	}
 }
 
 public class EnsureBotGoal extends Goal {
@@ -360,6 +373,7 @@ public class CommandCenter {
 
 public class BuildBuildingGoal extends Goal {
 	int type;
+	Base base = new Base();
 
 	void BuildBuildingGoal(int _type) {
 		type = _type;
@@ -378,8 +392,15 @@ public class BuildBuildingGoal extends Goal {
 		ReserveResourceGoal g = subGoals[0];
 		bot.get(g.resource);
 
-		point p1 = findBuildingSpot();
-		bot.bot_goto(p1, 1);
+		point p1 = base.findBuildingSpot(type);
+
+		bool success = bot.bot_goto(p1, 1);
+		if (!success) { // Not reachable by wheeled
+			upgradeActor();
+			drop();
+			return false;
+		}
+
 		drop();
 
 		float a;
@@ -546,6 +567,7 @@ public class GatherGoal extends Goal {
 		type = _type;
 		Base b = new Base();
 		stockpile = b.getStockpile(type);
+		actorBotType = WingedGrabber;
 	}
 
 	bool isComplete() {
@@ -561,15 +583,17 @@ public class GatherGoal extends Goal {
 	bool perform(Bot bot) {
 		bool success = bot.get(type, stockpile.center, 30, false);
 		if (!success) { // Not reachable by wheeled
-			if (canresearch(ResearchWinged)) {
-				actorBotType = WingedGrabber;
-			} else {
-				actorBotType = TrackedGrabber;
-			}
-			ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+			upgradeActor();
 			return false;
 		}
 		object item = bot.me.load;
+		if (type == PowerCell && item.energyLevel < 1) {
+			object o = radar(PowerStation);
+			bot.bot_goto(o.position, 1);
+			while(item.energyLevel < 1) {
+				wait(1);
+			}
+		}
 		bot.deposit(stockpile.center);
 		stockpile.add(item);
 		return true;
@@ -591,25 +615,12 @@ public class ShipSpotChecker extends SpotChecker {
 	}
 }
 
-point findBuildingSpot() {
-	Const const = new Const();
-	int BUILDING_SIZE = 3;
-	SpotChecker c = new BuildingSpotChecker();
-
-	object ship = radar(SpaceShip);
-	if (ship != null) {
-		return findSpot(c, ship.position, 30, BUILDING_SIZE);
-	} else {
-		return findSpot(c, radar(const.ALL_BOTS).position, 0, BUILDING_SIZE);
-	}
-}
-
 public class BuildingSpotChecker extends SpotChecker {
 	public bool check(point p) {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
-		if (distance2d(p, o.position) < 10) return false;
-		if (flatground(p, 5) < 4.9) return false;
+		if (distance2d(p, o.position) < 6) return false;
+		if (flatground(p, 6.5) < 6) return false;
 		return true;
 	}
 }

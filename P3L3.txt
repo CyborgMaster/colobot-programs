@@ -3,10 +3,18 @@ void addGoals(CommandCenter command) {
 	command.addGoal(g);
 }
 
+void satelliteReport(Base base) {
+	base.hasEnergy = true;
+	base.energyLocation = radar(BlueFlag).position;
+}
+
 extern void object::P3L3() {
 	CommandCenter command = new CommandCenter();
 	command.resetGoals();
 	addGoals(command);
+
+	Base base = new Base();
+	satelliteReport(base);
 
 	object that = this;
 	command.registerSlave(that);
