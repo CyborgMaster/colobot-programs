@@ -531,17 +531,17 @@ public class ReserveResourceGoal extends Goal {
 	bool perform(Bot bot) {
 		resource = base.reserveResource(type);
 		if (resource == null) {
-			subGoals[0] = new GatherSubGoal(type);
+			subGoals[0] = new GatherGoal(type);
 			return false;
 		}
 	}
 }
 
-public class GatherSubGoal extends Goal {
+public class GatherGoal extends Goal {
 	int type;
 	Stockpile stockpile;
 
-	void GatherSubGoal(int _type) {
+	void GatherGoal(int _type) {
 		type = _type;
 		Base b = new Base();
 		stockpile = b.getStockpile(type);
@@ -556,7 +556,9 @@ public class GatherSubGoal extends Goal {
 	bool perform(Bot bot) {
 		bool found = bot.get(type, stockpile.center, 30, false);
 		if (!found) return false;
+		object item = bot.me.load;
 		bot.deposit(stockpile.center);
+		stockpile.add(item);
 		return true;
 	}
 }
