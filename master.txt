@@ -78,7 +78,7 @@ public class Goal {
 	int status = 0; //NONE
 	Goal ensureActorSubGoal;
 	bool subGoalsInitialized = false;
-	Goal[] subGoals = {};
+	Goal[] subGoals;
 
 	bool isComplete() {
 		message("isComplete not implemented!", DisplayError);
@@ -101,6 +101,7 @@ public class Goal {
 		if (!subGoalsInitialized) {
 			ensureActorSubGoal = new EnsureBotGoal(actorBotType);
 			initializeSubGoals();
+			subGoalsInitialized = true;
 		}
 		Goal g = ensureActorSubGoal.nextGoal(bot);
 		if (g != null) return g;
@@ -511,7 +512,7 @@ public class ResearchGoal extends Goal {
 
 public class ReserveResourceGoal extends Goal {
 	int type;
-	object resource;
+	object resource = null;
 	Base base = new Base();
 
 	void ReserveResourceGoal(int _type) {
@@ -524,7 +525,7 @@ public class ReserveResourceGoal extends Goal {
 
 	void initializeSubGoals() {}
 
-	bool perform() {
+	bool perform(Bot bot) {
 		resource = base.reserveResource(type);
 		if (resource == null) {
 			subGoals[0] = new GatherSubGoal(type);
