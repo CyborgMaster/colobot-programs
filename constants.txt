@@ -7,6 +7,7 @@ public class Const {
 	static float DRIVING_RANGE = 100;
 	static int[] ALL_BOTS;
 	static int[] ALL_ALIENS;
+	static float[] RADII;
 
 	public void Const() {
 		if (staticInit) {
@@ -44,27 +45,195 @@ public class Const {
 			};
 			ALL_ALIENS = a2;
 
+			RADII[2] = 32.25; //Gantry Crane
+			RADII[3] = 02.00; //Space Ship; Bottom Width of 20.00, Top Width of 8.25
+			RADII[4] = 03.00; //Derrick
+			RADII[5] = 06.00; //Bot Factory
+			RADII[6] = 06.00; //Power Station
+			RADII[7] = 05.00; //Ore Converter
+			RADII[8] = 05.25; //Repair Center
+			RADII[9] = 02.75; //Defense Tower
+			RADII[10] = 00.00; //Alien Nest; Organic Material/hatchery?, however it is probably holding Orga mater
+			RADII[11] = 03.75; //Research Center
+			RADII[12] = 02.75; //Radar Station
+			RADII[13] = 04.00; //Power Plant; Power Cell Factory
+			RADII[14] = 05.25; //Auto Lab
+			RADII[15] = 07.00; //Nuclear Power Station
+			RADII[16] = 00.00; //Start Area; platform
+			RADII[17] = 00.00; //Goal Area;  platform
+			RADII[18] = 02.75; //Information exchange post
+			RADII[19] = 06.50; //Power Captor
+			RADII[20] = 07.75; //Target "the target stand" (+)==<  looking thing; 03.25 at bace
+			RADII[21] = 00.00; //Target2 "the actual Brass + Target"
+			RADII[22] = 04.50; //Vault
+			RADII[23] = 18.75; //Huston Mission Control
+
+			RADII[31] = 01.50; //Titanium Ore
+			RADII[32] = 01.50; //Uranium Ore
+			RADII[33] = 01.50; //Titanium
+			RADII[34] = 01.75; //Power Cell
+			RADII[35] = 01.50; //Nuclear Power Cell
+			RADII[36] = 01.50; //Orga Mater
+			RADII[37] = 01.50; //Black Box
+			RADII[38] = 01.50; //TNT Brick
+
+			RADII[50] = 00.00; //green cross   -> energy deposit.
+			RADII[51] = 00.00; //red cross     -> titanium ore.
+			RADII[52] = 00.00; //yellow circle -> uranium ore.
+
+			RADII[60] = 02.00; //Mine
+			RADII[61] = 01.75; //Firework
+			RADII[63] = 02.00; //Rocket Back Pack
+
+			RADII[70] = 02.00; //Plant; Earth, Tropica, Centaury
+			RADII[71] = 02.00; //Plant; Earth, Tropica, Centaury
+			RADII[72] = 02.00; //Plant; Earth, Tropica, Centaury
+			RADII[73] = 02.00; //Plant; Earth, Tropica, Centaury
+			RADII[74] = 02.00; //Plant; Earth, Tropica, Centaury
+			RADII[75] = 00.00; //Small Plant; Tropica
+			RADII[76] = 00.00; //Small Plant; Tropica
+			RADII[77] = 00.00; //Small Plant; Tropica
+
+			// RADII[80] = 02.75; //Large Plant; Tropica
+			// RADII[81] = 02.50; //Large Plant; Tropica
+			// RADII[82] = 02.50; //Large Plant; Tropica
+			// RADII[83] = 03.00; //Large Plant; Tropica
+			// RADII[84] = 02.50; //Large Plant; Tropica
+
+			RADII[80] = 0; //Large Plant; Tropica
+			RADII[81] = 0; //Large Plant; Tropica
+			RADII[82] = 0; //Large Plant; Tropica
+			RADII[83] = 0; //Large Plant; Tropica
+			RADII[84] = 0; //Large Plant; Tropica
+
+			RADII[85] = 01.75; //Plant; Volcano
+			RADII[86] = 01.75; //Plant; Volcano
+			RADII[87] = 01.75; //Plant, Tall; Volcano
+			RADII[88] = 01.75; //Plant; Volcano
+			RADII[89] = 01.75; //Plant; Volcano
+			RADII[90] = 01.75; //Tree; Earth
+			RADII[91] = 02.50; //Tree; Earth
+			RADII[92] = 02.75; //Tree; Earth
+			RADII[93] = 03.75; //Tree; Earth
+
+			RADII[100] = 02.50; //Practice Bot
+
+			RADII[110] = 02.50; //Wheeled Grabber
+			RADII[111] = 02.50; //Tracked Grabber
+			RADII[112] = 02.50; //Winged Grabber
+			RADII[113] = 02.50; //Legged Grabber
+
+			RADII[120] = 02.50; //Wheeled Shooter
+			RADII[121] = 02.50; //Tracked Shooter
+			RADII[122] = 02.50; //Winged Shooter
+			RADII[123] = 02.50; //Legged Shooter
+
+			RADII[130] = 02.50; //Wheeled Orga Shooter
+			RADII[131] = 02.50; //Tracked Orga Shooter
+			RADII[132] = 02.50; //Winged Orga Shooter
+			RADII[133] = 02.50; //Legged Orga Shooter
+
+			RADII[140] = 02.50; //Wheeled Sniffer
+			RADII[141] = 02.50; //Tracked Sniffer
+			RADII[142] = 02.50; //Winged Sniffer
+			RADII[143] = 02.50; //Legged Sniffer
+
+			RADII[200] = 03.00; //Thumper
+			RADII[201] = 03.00; //Phazer Shooter35
+			RADII[202] = 03.00; //Recycler
+			RADII[203] = 03.00; //Shielder; Height 3.00 when not active
+			RADII[210] = 02.50; //Subber
+			RADII[211] = 02.50; //Target Bot
+			RADII[250] = 00.00; //Way Point
+
+			RADII[260] = 00.00; //Blue Flag
+			RADII[261] = 00.00; //Red Flag
+			RADII[262] = 00.00; //Green Flag
+			RADII[263] = 00.00; //Yellow Flag
+			RADII[264] = 00.00; //Purple Flag
+			RADII[270] = 01.50; //KeyA - Blue
+			RADII[271] = 01.50; //KeyB - Red
+			RADII[272] = 01.50; //KeyC - Green
+			RADII[273] = 01.50; //KeyD - Yellow
+
+			RADII[300] = 01.75; //Me
+			RADII[302] = 01.75; //Tech (looks a lot like "Me" in some levels)
+			RADII[400] = 02.25; //Barrier-Short; 1.5 width (about radi-of bot)
+			RADII[401] = 03.50; //Barrier-Long; 1.5 width (about radi-of bot)
+
+			RADII[500] = 06.25; //Alien Queen
+			RADII[501] = 02.25; //Alien Egg
+			RADII[502] = 02.25; //Alien Ant
+			RADII[503] = 02.00; //Alien Spider
+			RADII[504] = 02.25; //Alien Wasp
+			RADII[505] = 00.00; //Alien Worm
+
+			RADII[600] = 03.00; //A Wreckage wild card! for Recyclables
+			RADII[600] = 02.00; //Wreckage; Whelled Grabber, Recyclable
+			RADII[601] = 02.00; //Wreckage; Sunken Whelled Grabber, Recyclable
+			RADII[602] = 03.00; //Wreckage; Tracked Shooter, Recyclable
+			RADII[603] = 03.00; //Wreckage; Sunken Tracked Shooter, Recyclable
+			RADII[603] = 02.50; //Wreckage; Sunken Recyceler, Recyclable
+			RADII[605] = 02.50; //Wreckage; Recyceler, Recyclable
+
+			RADII[606] = 06.00; //Ruin; Bot Factory
+			RADII[607] = 02.25; //Ruin; Ore Converter Door
+			RADII[608] = 02.00; //Ruin; Support, C shaped hunk of mettel
+			RADII[609] = 02.25; //Ruin; Brick like, Radar Station Base
+			RADII[610] = 05.00; //Ruin; Ore Converter
+			RADII[611] = 13.25; //Ruin; Space Ship Bace
+			RADII[612] = 08.50; //Ruin; Space Ship Top
+
+			RADII[700] = 02.00; //Crystal; Crystalium
+			RADII[701] = 02.50; //Crystal; Crystalium
+			RADII[702] = 02.75; //Crystal; Crystalium
+			RADII[703] = 04.50; //Crystal; Crystalium
+
+			RADII[710] = 04.25; //Green Mega Stalk; Stranve Plant, Small
+			RADII[711] = 03.50; //Green Mega Stalk; Stranve Plant, Small
+			RADII[712] = 03.25; //Green Mega Stalk; Stranve Plant, Small
+			RADII[713] = 05.25; //Green Mega Stalk; Stranve Plant, Med
+			RADII[714] = 07.25; //Green Mega Stalk; Stranve Plant, Large
+			RADII[715] = 07.25; //Green Mega Stalk; Stranve Plant, Large with Green Shield like apperatice
+			RADII[715] = 22.00; //#715's Green Shield (affects flyers ability to fly); you cannot fly over it
+
+			RADII[731] = 02.00; //Mushroom; non corrosive
+			RADII[732] = 02.00; //Mushroom; corrosive
+
+			RADII[900] = 05.02; //Lunar Lander; Derelict of Apollo Mission
+			RADII[901] = 03.25; //Lunar Roving Vehicle
+			RADII[902] = 00.00; //American flag; Derelict of Apollo Mission
+			RADII[903] = 01.75; //Inverted Satelite Dish; Derelict of Apollo Mission
+			RADII[904] = 02.00; //Satelite Dish; Derelict of Apollo Mission
+			RADII[910] = 03.75; //Home
+
+
+
 			staticInit = false;
 		}
+	}
+
+	float radius(object o) {
+		return RADII[o.category];
 	}
 }
 
 string BotSubStr(int cat){
-	 switch (cat%10) {
-		case 0: return "Wheeled";
-		case 1: return "Tracked";
-		case 2: return "Winged";
-		case 3: return "Legged";
+	switch (cat%10) {
+	case 0: return "Wheeled";
+	case 1: return "Tracked";
+	case 2: return "Winged";
+	case 3: return "Legged";
 	}
 }
 
 string ColorStr(int cat){
-	 switch (cat%10) {
-		case 0: return "Blue";
-		case 1: return "Red";
-		case 2: return "Green";
-		case 3: return "Yellow";
-		case 4: return "Violet";
+	switch (cat%10) {
+	case 0: return "Blue";
+	case 1: return "Red";
+	case 2: return "Green";
+	case 3: return "Yellow";
+	case 4: return "Violet";
 	}
 }
 
@@ -106,9 +275,9 @@ public int[] botResearch(int botType) {
 
 	switch (botType/10) {
 	case 11: break;
-	case 12: research[1] = ResearchSniffer; break;
-	case 13: research[1] = ResearchShooter; break;
-	case 14: research[1] = ResearchOrgaShooter; break;
+	case 12: research[1] = ResearchShooter; break;
+	case 13: research[1] = ResearchOrgaShooter; break;
+	case 14: research[1] = ResearchSniffer; break;
 	default:
 		message("Invalid bot type: " + botType, DisplayError);
 	}

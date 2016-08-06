@@ -69,7 +69,7 @@ public class Base {
 
 	synchronized point findBuildingSpot(int type) {
 		Const const = new Const();
-		int BUILDING_SIZE = 3;
+		int STRIDE = 2;
 		SpotChecker c = new BuildingSpotChecker();
 
 		if (type == PowerStation) {
@@ -78,9 +78,9 @@ public class Base {
 
 		object ship = radar(SpaceShip);
 		if (ship != null) {
-			return findSpot(c, ship.position, 30, BUILDING_SIZE);
+			return findSpot(c, ship.position, 30, STRIDE);
 		} else {
-			return findSpot(c, radar(const.ALL_BOTS).position, 0, BUILDING_SIZE);
+			return findSpot(c, radar(const.ALL_BOTS).position, 0, STRIDE);
 		}
 	}
 }
@@ -432,7 +432,7 @@ public class BuildBotGoal extends Goal {
 		botType = _botType;
 	}
 
-	bool isCompleted() {
+	bool isComplete() {
 		return status == DONE;
 	}
 
@@ -449,7 +449,7 @@ public class BuildBotGoal extends Goal {
 	bool perform(Bot bot) {
 		ReserveResourceGoal g = subGoals[sizeof(subGoals)-2];
 		object titanium = g.resource;
-		g = subGoals[sizeof(subGoals)-3];
+		g = subGoals[sizeof(subGoals)-1];
 		object powerCell = g.resource;
 		bot.get(titanium);
 
@@ -616,10 +616,12 @@ public class ShipSpotChecker extends SpotChecker {
 }
 
 public class BuildingSpotChecker extends SpotChecker {
+	static Const const = new Const();
+
 	public bool check(point p) {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
-		if (distance2d(p, o.position) < 6) return false;
+		if (distance2d(p, o.position) < 6 + 1 + const.radius(o)) return false;
 		if (flatground(p, 6.5) < 6) return false;
 		return true;
 	}
