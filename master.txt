@@ -1,11 +1,11 @@
-// TODO: fix building placement (move back one before dropping)
-// TODO: stockpiles don't need flat ground
-// TODO: remove flag when building built
 // TODO: build repair center before combat
-// TODO: remove destroyed robots from command center
+// TODO: stockpiles don't need flat ground, put beyond buildings
+// TODO: fix building placement (move back one before dropping)
+// TODO: remove flag when building built
 // TODO: don't use deposit and space for stokpiles, find a spot myself
 // TODO: split goals into their own file
-// TODO: fix building radius
+// TODO: dropping sometimes fails, deal with it
+// TODO: BIG - idle goals (gather)
 
 extern void object::Master() {}
 
@@ -251,6 +251,10 @@ public class EnsureBotGoal extends Goal {
 	}
 
 	bool perform(Bot bot) {
+		if (subGoals[0].status == DONE && !isComplete()) {
+			subGoals[0] = new BuildBotGoal(type);
+		}
+
 		return isComplete();
 	}
 
@@ -262,6 +266,7 @@ public class EnsureBotGoal extends Goal {
 public class SlaveInfo {
 	static int FREE = 0;
 	static int BUSY = 1;
+	static int DESTROYED = 2;
 
 	object bot;
 	int status;
@@ -361,7 +366,7 @@ public class CommandCenter {
 
 	public SlaveInfo getFreeSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
-			if(slaves[i].status == 0 /*FREE*/ &&
+			if(slaves[i].status == slaves[i].FREE &&
 				 slaves[i].bot.category == type) {
 				return slaves[i];
 			}
@@ -372,7 +377,8 @@ public class CommandCenter {
 
 	public SlaveInfo getSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
-			if(type == Any || slaves[i].bot.category == type) {
+			if(slaves[i].status != slaves[i].DESTROYED &&
+				 (type == Any || slaves[i].bot.category == type)) {
 				return slaves[i];
 			}
 		}
@@ -389,6 +395,20 @@ public class CommandCenter {
 			slave = getFreeSlave(type);
 			if (slave != null) return slave;
 			wait(1);
+		}
+	}
+
+	synchronized void checkForDeadSlaves(object executingSlave) {
+		for (int i = 0; i < sizeof(slaves); i++) {
+			if (slaves[i].status == slaves[i].DESTROYED) continue;
+			if (slaves[i].bot != executingSlave && !slaves[i].bot.isAlive()) {
+				message("Slave destroyed! " + slaves[i].bot.category, DisplayError);
+				slaves[i].status = slaves[i].DESTROYED;
+				if (slaves[i].goal != null) {
+					slaves[i].goal.status = slaves[i].goal.NONE;
+					slaves[i].goal = null;
+				}
+			}
 		}
 	}
 }
@@ -804,6 +824,7 @@ public void object::slave()
 			if (info.goal != null) break;
 			wait(1);
 			command.checkCompletion();
+			command.checkForDeadSlaves(this);
 		}
 
 		message("New goal: " + info.goal.toString(), DisplayInfo);
