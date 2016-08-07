@@ -7,6 +7,7 @@ public class Const {
 	static float DRIVING_RANGE = 100;
 	static int[] ALL_BOTS;
 	static int[] ALL_ALIENS;
+	static int[] ALL_BUILDINGS;
 	static float[] RADII;
 	static string[] CATEGORY_NAMES;
 
@@ -45,6 +46,26 @@ public class Const {
 				AlienWorm
 			};
 			ALL_ALIENS = a2;
+
+			int[] a3 = {
+				Houston,
+				SpaceShip,
+				BotFactory,
+				ResearchCenter,
+				RadarStation,
+				ExchangePost,
+				RepairCenter,
+				DefenseTower,
+				AutoLab,
+				PowerStation,
+				PowerPlant,
+				NuclearPlant,
+				Converter,
+				Derrick,
+				PowerCaptor,
+				Vault
+			};
+			ALL_BUILDINGS = a3;
 
 			RADII[2] = 32.25; //Gantry Crane
 			RADII[3] = 02.00; //Space Ship; Bottom Width of 20.00, Top Width of 8.25
@@ -407,16 +428,26 @@ public class Const {
 			staticInit = false;
 		}
 	}
+}
 
-	float radius(object o) {
-		return RADII[o.category];
-	}
+public float radius(object o) {
+	Const const();
+	return const.RADII[o.category];
 }
 
 public string categoryString(int cat) {
-	Const const = new Const();
+	Const const();
 	return const.CATEGORY_NAMES[cat];
 }
+
+public bool isBuilding(object o) {
+	Const const();
+	for (int i = 0; i < sizeof(const.ALL_BUILDINGS); i++) {
+		if (const.ALL_BUILDINGS[i] == o.category) return true;
+	}
+	return false;
+}
+
 
 public string researchString(int research) {
 	switch(research) {

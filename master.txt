@@ -754,12 +754,12 @@ public class ShipSpotChecker extends SpotChecker {
 }
 
 public class BuildingSpotChecker extends SpotChecker {
-	static Const const = new Const();
-
 	public bool check(point p) {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
-		if (distance2d(p, o.position) < 6 + 1 + const.radius(o)) return false;
+		float spaceNeeded = 6 + radius(o);
+		if (isBuilding(o)) spaceNeeded += 2;
+		if (distance2d(p, o.position) < spaceNeeded) return false;
 		if (flatground(p, 6.5) < 6) return false;
 		return true;
 	}
