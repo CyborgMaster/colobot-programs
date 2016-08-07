@@ -165,11 +165,15 @@ public class Bot {
 	}
 
   public bool get(object o) {
-		bool success = bot_goto(o.position, 2);
-		if (!success) return false;
-		turn(direction(o.position));
-		grab();
-		return true;
+		while (true) {
+			bool success = bot_goto(o.position, 2);
+			if (!success) return false;
+			turn(direction(o.position));
+			grab();
+			if (o == me.load) return true;
+			message("Got the wrong item!");
+			drop();
+		}
 	}
 
 	public void deposit(point dropPoint) {
