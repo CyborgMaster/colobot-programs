@@ -1,4 +1,12 @@
+// TODO: fix beginning resrouce finding
+// TODO: fix building placement (back one)
+// TODO: stockpiles don't need flat ground
+// TODO: remove flag when building built
+// TODO: build repair center before combat
+// TODO: remove destroyed robots from command center
+
 extern void object::Master() {}
+
 public class StockpileItem {
 	static int FREE = 0;
 	static int RESERVED = 1;
@@ -13,25 +21,18 @@ public class StockpileItem {
 
 public class Stockpile {
 	int type; // Resource
-	point center;
-	StockpileItem[] items;
+	private point center;
+	private bool hasCenter = false;
+	private StockpileItem[] items;
 
-	void Stockpile(int _type, point _center) {
+	void Stockpile(int _type) {
 		type = _type;
-		center = _center;
-		object s = radar(SpaceShip);
 		object[] found = radarall(type, 0, 360, 0, 50);
 		for (int i = 0; i < sizeof(found); i++) {
 			items[sizeof(items)] = new StockpileItem(found[i]);
 		}
-	}
 
-	synchronized void add(object o) {
-		if (o.category != type) {
-			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
-			throw 1;
-		}
-		items[sizeof(items)] = new StockpileItem(o);
+		//message("Registered " + sizeof(items) + " " + categoryString(type));
 	}
 
 	synchronized object reserve() {
@@ -42,6 +43,28 @@ public class Stockpile {
 			}
 		}
 		return null;
+	}
+
+	synchronized void add(object o) {
+		if (o.category != type) {
+			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
+			throw 1;
+		}
+		items[sizeof(items)] = new StockpileItem(o);
+	}
+
+	synchronized point getCenter() {
+		if (!hasCenter) {
+			Base b = new Base();
+			center = b.findBuildingSpot(Any);
+			hasCenter = true;
+		}
+		return center;
+	}
+
+	synchronized point getDropPoint() {
+		if (!hasCenter) getCenter();
+		return space(center, 0, 20, 2);
 	}
 }
 
@@ -62,26 +85,34 @@ public class Base {
 	}
 
 	synchronized Stockpile initStockpile(int type) {
-		Stockpile pile = new Stockpile(type, findBuildingSpot(Any));
+		Stockpile pile = new Stockpile(type);
 		stockpiles[sizeof(stockpiles)] = pile;
 		return pile;
 	}
 
 	synchronized point findBuildingSpot(int type) {
 		Const const = new Const();
-		int STRIDE = 2;
 		SpotChecker c = new BuildingSpotChecker();
+		int stride = 2;
+		float minDist = 0;
+		point center;
 
 		if (type == PowerStation) {
-			return findSpot(c, energyLocation, 0, 1);
+			center = energyLocation;
+			stride = 1;
+		} else {
+			object ship = radar(SpaceShip);
+			if (ship != null) {
+				center = ship.position;
+				minDist = 30;
+			} else {
+				center = radar(const.ALL_BOTS).position;
+			}
 		}
 
-		object ship = radar(SpaceShip);
-		if (ship != null) {
-			return findSpot(c, ship.position, 30, STRIDE);
-		} else {
-			return findSpot(c, radar(const.ALL_BOTS).position, 0, STRIDE);
-		}
+		point p = findSpot(c, center, minDist, stride);
+		produce(p, 0, GreenFlag);
+		return p;
 	}
 }
 
@@ -130,7 +161,7 @@ public class Goal {
 			if (g != null) return g;
 		}
 		if (notReady) return null;
-		if (actorBotType == bot) return this;
+		if (actorBotType == Any || actorBotType == bot) return this;
 		return null;
 	}
 
@@ -146,17 +177,17 @@ public class Goal {
 
 public class EnsureBotGoal extends Goal {
 	int type;
-	CommandCenter command = new CommandCenter();
 
 	void EnsureBotGoal(int _type) {
 		type = _type;
 	}
 
 	bool isComplete() {
+		CommandCenter command = new CommandCenter();
 		return command.hasSlave(type);
 	}
 
-	void initalizeSubGoals() {
+	void initializeSubGoals() {
 		subGoals[0] = new BuildBotGoal(type);
 	}
 
@@ -275,7 +306,9 @@ public class CommandCenter {
 
 	public SlaveInfo getSlave(int type) {
 		for (int i = 0; i < sizeof(slaves); i++) {
-			if(slaves[i].bot.category == type) return slaves[i];
+			if(type == Any || slaves[i].bot.category == type) {
+				return slaves[i];
+			}
 		}
 		return null;
 	}
@@ -414,7 +447,7 @@ public class BuildBuildingGoal extends Goal {
 		point p2 = alongDirection(p1, a, 8);
 		bot.bot_goto(p2, 1);
 		turn(direction(p1));
-		message("Building building '" + CatStr(type) + "'", DisplayInfo);
+		message("Building building '" + categoryString(type) + "'", DisplayInfo);
 		build(type);
 
 		// do {
@@ -463,7 +496,7 @@ public class BuildBotGoal extends Goal {
 		drop();
 		move(-5);
 
-		message("Building '" + CatStr(botType) + "'", DisplayInfo);
+		message("Building '" + categoryString(botType) + "'", DisplayInfo);
 		o.factory(botType);
 
 		point p = bot.me.position;
@@ -542,6 +575,7 @@ public class ReserveResourceGoal extends Goal {
 
 	void ReserveResourceGoal(int _type) {
 		type = _type;
+		actorBotType = Any;
 	}
 
 	bool isComplete() {
@@ -581,7 +615,7 @@ public class GatherGoal extends Goal {
 	}
 
 	bool perform(Bot bot) {
-		bool success = bot.get(type, stockpile.center, 30, false);
+		bool success = bot.get(type, stockpile.getCenter(), 30, false);
 		if (!success) { // Not reachable by wheeled
 			upgradeActor();
 			return false;
@@ -594,7 +628,7 @@ public class GatherGoal extends Goal {
 				wait(1);
 			}
 		}
-		bot.deposit(stockpile.center);
+		bot.deposit(stockpile.getCenter());
 		stockpile.add(item);
 		return true;
 	}
@@ -623,6 +657,23 @@ public class BuildingSpotChecker extends SpotChecker {
 		object o = search(Any, p);
 		if (distance2d(p, o.position) < 6 + 1 + const.radius(o)) return false;
 		if (flatground(p, 6.5) < 6) return false;
+		return true;
+	}
+}
+
+public class KillGoal extends Goal {
+	void KillGoal() {
+		actorBotType = WingedShooter;
+	}
+
+	bool isComplete() {
+		return radar(AlienAnt) == null;
+	}
+
+	void initializeSubGoals() {}
+
+	bool perform(Bot bot) {
+		bot.kill();
 		return true;
 	}
 }

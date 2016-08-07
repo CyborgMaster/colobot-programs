@@ -1,5 +1,7 @@
 void addGoals(CommandCenter command) {
-	Goal g = new BuildBotGoal(WingedShooter);
+	// Goal g = new BuildBotGoal(WingedShooter);
+	// command.addGoal(g);
+	Goal g = new KillGoal();
 	command.addGoal(g);
 }
 

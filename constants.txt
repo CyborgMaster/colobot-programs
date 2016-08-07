@@ -8,6 +8,7 @@ public class Const {
 	static int[] ALL_BOTS;
 	static int[] ALL_ALIENS;
 	static float[] RADII;
+	static string[] CATEGORY_NAMES;
 
 	public void Const() {
 		if (staticInit) {
@@ -207,7 +208,201 @@ public class Const {
 			RADII[904] = 02.00; //Satelite Dish; Derelict of Apollo Mission
 			RADII[910] = 03.75; //Home
 
-
+			CATEGORY_NAMES[2] = "Portico";
+			CATEGORY_NAMES[3] = "SpaceShip";
+			CATEGORY_NAMES[4] = "Derrick";
+			CATEGORY_NAMES[5] = "BotFactory";
+			CATEGORY_NAMES[6] = "PowerStation";
+			CATEGORY_NAMES[7] = "Converter";
+			CATEGORY_NAMES[8] = "RepairStation";
+			CATEGORY_NAMES[9] = "DefenseTower";
+			CATEGORY_NAMES[10] = "AlienNest";
+			CATEGORY_NAMES[11] = "ResearchCenter";
+			CATEGORY_NAMES[12] = "RadarStation";
+			CATEGORY_NAMES[13] = "PowerPlant";
+			CATEGORY_NAMES[14] = "AutoLab";
+			CATEGORY_NAMES[15] = "NuclearPlant";
+			CATEGORY_NAMES[16] = "StartArea";
+			CATEGORY_NAMES[17] = "EndArea";
+			CATEGORY_NAMES[18] = "ExchangePost";
+			CATEGORY_NAMES[19] = "PowerCaptor";
+			CATEGORY_NAMES[20] = "Target1 (gate)";
+			CATEGORY_NAMES[21] = "Target2 (center)";
+			CATEGORY_NAMES[22] = "Vault";
+			CATEGORY_NAMES[23] = "Houston";
+			CATEGORY_NAMES[24] = "Destroyer";
+			CATEGORY_NAMES[31] = "TitaniumOre";
+			CATEGORY_NAMES[32] = "UraniumOre";
+			CATEGORY_NAMES[33] = "Titanium";
+			CATEGORY_NAMES[34] = "PowerCell";
+			CATEGORY_NAMES[35] = "NuclearCell";
+			CATEGORY_NAMES[36] = "OrgaMatter";
+			CATEGORY_NAMES[37] = "BlackBox";
+			CATEGORY_NAMES[38] = "TNT";
+			CATEGORY_NAMES[50] = "PowerSpot";
+			CATEGORY_NAMES[51] = "TitaniumSpot";
+			CATEGORY_NAMES[52] = "UraniumSpot";
+			CATEGORY_NAMES[53] = "KeyASpot";
+			CATEGORY_NAMES[54] = "KeyBSpot";
+			CATEGORY_NAMES[55] = "KeyCSpot";
+			CATEGORY_NAMES[56] = "KeyDSpot";
+			CATEGORY_NAMES[60] = "Mine";
+			CATEGORY_NAMES[61] = "Firework";
+			CATEGORY_NAMES[62] = "arrow above object (Visit)";
+			CATEGORY_NAMES[63] = "Bag";
+			CATEGORY_NAMES[70] = "Greenery0";
+			CATEGORY_NAMES[71] = "Greenery1";
+			CATEGORY_NAMES[72] = "Greenery2";
+			CATEGORY_NAMES[73] = "Greenery3";
+			CATEGORY_NAMES[74] = "Greenery4";
+			CATEGORY_NAMES[75] = "Greenery5";
+			CATEGORY_NAMES[76] = "Greenery6";
+			CATEGORY_NAMES[77] = "Greenery7";
+			CATEGORY_NAMES[78] = "Greenery8";
+			CATEGORY_NAMES[79] = "Greenery9";
+			CATEGORY_NAMES[80] = "Greenery10";
+			CATEGORY_NAMES[81] = "Greenery11";
+			CATEGORY_NAMES[82] = "Greenery12";
+			CATEGORY_NAMES[83] = "Greenery13";
+			CATEGORY_NAMES[84] = "Greenery14";
+			CATEGORY_NAMES[85] = "Greenery15";
+			CATEGORY_NAMES[86] = "Greenery16";
+			CATEGORY_NAMES[87] = "Greenery17";
+			CATEGORY_NAMES[88] = "Greenery18";
+			CATEGORY_NAMES[89] = "Greenery19";
+			CATEGORY_NAMES[90] = "Tree0";
+			CATEGORY_NAMES[91] = "Tree1";
+			CATEGORY_NAMES[92] = "Tree2";
+			CATEGORY_NAMES[93] = "Tree3";
+			CATEGORY_NAMES[94] = "Tree4";
+			CATEGORY_NAMES[95] = "Tree5";
+			CATEGORY_NAMES[100] = "PracticeBot";
+			CATEGORY_NAMES[101] = "track-trainer (unused)";
+			CATEGORY_NAMES[102] = "fly-trainer (unused)";
+			CATEGORY_NAMES[103] = "insect-trainer (unused)";
+			CATEGORY_NAMES[110] = "WheeledGrabber";
+			CATEGORY_NAMES[111] = "TrackedGrabber";
+			CATEGORY_NAMES[112] = "WingedGrabber";
+			CATEGORY_NAMES[113] = "LeggedGrabber";
+			CATEGORY_NAMES[120] = "WheeledShooter";
+			CATEGORY_NAMES[121] = "TrackedShooter";
+			CATEGORY_NAMES[122] = "WingedShooter";
+			CATEGORY_NAMES[123] = "LeggedShooter";
+			CATEGORY_NAMES[130] = "WheeledOrgaShooter";
+			CATEGORY_NAMES[131] = "TrackedOrgaShooter";
+			CATEGORY_NAMES[132] = "WingedOrgaShooter";
+			CATEGORY_NAMES[133] = "LeggedOrgaShooter";
+			CATEGORY_NAMES[140] = "WheeledSniffer";
+			CATEGORY_NAMES[141] = "TrackedSniffer";
+			CATEGORY_NAMES[142] = "WingedSniffer";
+			CATEGORY_NAMES[143] = "LeggedSniffer";
+			CATEGORY_NAMES[200] = "Thumper";
+			CATEGORY_NAMES[201] = "PhazerShooter";
+			CATEGORY_NAMES[202] = "Recycler";
+			CATEGORY_NAMES[203] = "Shielder";
+			CATEGORY_NAMES[210] = "Subber";
+			CATEGORY_NAMES[211] = "TargetBot";
+			CATEGORY_NAMES[212] = "Scribbler";
+			CATEGORY_NAMES[213] = "MissionController";
+			CATEGORY_NAMES[250] = "WayPoint";
+			CATEGORY_NAMES[260] = "BlueFlag";
+			CATEGORY_NAMES[261] = "RedFlag";
+			CATEGORY_NAMES[262] = "GreenFlag";
+			CATEGORY_NAMES[263] = "YellowFlag";
+			CATEGORY_NAMES[264] = "VioletFlag";
+			CATEGORY_NAMES[270] = "KeyA";
+			CATEGORY_NAMES[271] = "KeyB";
+			CATEGORY_NAMES[272] = "KeyC";
+			CATEGORY_NAMES[273] = "KeyD";
+			CATEGORY_NAMES[300] = "Me";
+			CATEGORY_NAMES[301] = "Robby (toto)";
+			CATEGORY_NAMES[302] = "Tech";
+			CATEGORY_NAMES[400] = "Barrier0";
+			CATEGORY_NAMES[401] = "Barrier1";
+			CATEGORY_NAMES[402] = "Barrier2";
+			CATEGORY_NAMES[403] = "Barrier3";
+			CATEGORY_NAMES[500] = "AlienQueen";
+			CATEGORY_NAMES[501] = "AlienEgg";
+			CATEGORY_NAMES[502] = "AlienAnt";
+			CATEGORY_NAMES[503] = "AlienSpider";
+			CATEGORY_NAMES[504] = "AlienWasp";
+			CATEGORY_NAMES[505] = "AlienWorm";
+			CATEGORY_NAMES[600] = "WreckBotw1";
+			CATEGORY_NAMES[601] = "WreckBotw2";
+			CATEGORY_NAMES[602] = "WreckBott1";
+			CATEGORY_NAMES[603] = "WreckBott2";
+			CATEGORY_NAMES[604] = "WreckBotr1";
+			CATEGORY_NAMES[605] = "WreckBotr2";
+			CATEGORY_NAMES[606] = "RuinBotFactory";
+			CATEGORY_NAMES[607] = "RuinDoor";
+			CATEGORY_NAMES[608] = "RuinSupport";
+			CATEGORY_NAMES[609] = "RuinRadar";
+			CATEGORY_NAMES[610] = "RuinConvert";
+			CATEGORY_NAMES[611] = "RuinBaseCamp";
+			CATEGORY_NAMES[612] = "RuinHeadCamp";
+			CATEGORY_NAMES[620] = "Teen0";
+			CATEGORY_NAMES[621] = "Teen1";
+			CATEGORY_NAMES[622] = "Teen2";
+			CATEGORY_NAMES[623] = "Teen3";
+			CATEGORY_NAMES[624] = "Teen4";
+			CATEGORY_NAMES[625] = "Teen5";
+			CATEGORY_NAMES[626] = "Teen6";
+			CATEGORY_NAMES[627] = "Teen7";
+			CATEGORY_NAMES[628] = "Teen8";
+			CATEGORY_NAMES[629] = "Teen9";
+			CATEGORY_NAMES[630] = "Teen10";
+			CATEGORY_NAMES[631] = "Teen11";
+			CATEGORY_NAMES[632] = "Teen12";
+			CATEGORY_NAMES[633] = "Teen13";
+			CATEGORY_NAMES[634] = "Teen14";
+			CATEGORY_NAMES[635] = "Teen15";
+			CATEGORY_NAMES[636] = "Teen16";
+			CATEGORY_NAMES[637] = "Teen17";
+			CATEGORY_NAMES[638] = "Teen18";
+			CATEGORY_NAMES[639] = "Teen19";
+			CATEGORY_NAMES[640] = "Teen20";
+			CATEGORY_NAMES[641] = "Teen21";
+			CATEGORY_NAMES[642] = "Teen22";
+			CATEGORY_NAMES[643] = "Teen23";
+			CATEGORY_NAMES[644] = "Teen24";
+			CATEGORY_NAMES[645] = "Teen25";
+			CATEGORY_NAMES[646] = "Teen26";
+			CATEGORY_NAMES[647] = "Teen27";
+			CATEGORY_NAMES[648] = "Teen28";
+			CATEGORY_NAMES[649] = "Teen29";
+			CATEGORY_NAMES[650] = "Teen30";
+			CATEGORY_NAMES[651] = "Teen31";
+			CATEGORY_NAMES[652] = "Teen32";
+			CATEGORY_NAMES[653] = "Teen33";
+			CATEGORY_NAMES[654] = "Stone (Teen34)";
+			CATEGORY_NAMES[655] = "Teen35";
+			CATEGORY_NAMES[656] = "Teen36";
+			CATEGORY_NAMES[657] = "Teen37";
+			CATEGORY_NAMES[658] = "Teen38";
+			CATEGORY_NAMES[659] = "Teen39";
+			CATEGORY_NAMES[660] = "Teen40";
+			CATEGORY_NAMES[661] = "Teen41";
+			CATEGORY_NAMES[662] = "Teen42";
+			CATEGORY_NAMES[663] = "Teen43";
+			CATEGORY_NAMES[664] = "Teen44";
+			CATEGORY_NAMES[700] = "Quartz0";
+			CATEGORY_NAMES[701] = "Quartz1";
+			CATEGORY_NAMES[702] = "Quartz2";
+			CATEGORY_NAMES[703] = "Quartz3";
+			CATEGORY_NAMES[710] = "MegaStalk0";
+			CATEGORY_NAMES[711] = "MegaStalk1";
+			CATEGORY_NAMES[712] = "MegaStalk2";
+			CATEGORY_NAMES[713] = "MegaStalk3";
+			CATEGORY_NAMES[714] = "MegaStalk4";
+			CATEGORY_NAMES[715] = "MegaStalk5";
+			CATEGORY_NAMES[731] = "Mushroom1";
+			CATEGORY_NAMES[732] = "Mushroom2";
+			CATEGORY_NAMES[900] = "ApolloLEM";
+			CATEGORY_NAMES[901] = "ApolloJeep";
+			CATEGORY_NAMES[902] = "ApolloFlag";
+			CATEGORY_NAMES[903] = "ApolloModule";
+			CATEGORY_NAMES[904] = "ApolloAntenna";
+			CATEGORY_NAMES[910] = "Home";
 
 			staticInit = false;
 		}
@@ -218,46 +413,30 @@ public class Const {
 	}
 }
 
-string BotSubStr(int cat){
-	switch (cat%10) {
-	case 0: return "Wheeled";
-	case 1: return "Tracked";
-	case 2: return "Winged";
-	case 3: return "Legged";
-	}
-}
-
-string ColorStr(int cat){
-	switch (cat%10) {
-	case 0: return "Blue";
-	case 1: return "Red";
-	case 2: return "Green";
-	case 3: return "Yellow";
-	case 4: return "Violet";
-	}
-}
-
-public string CatStr(int cat) {
-	switch (cat) {
-	case ResearchCenter: return "Research Center";
-	case BotFactory: return "Bot Factory";
-	}
-	switch (cat/10) {
-	case 11: return BotSubStr(cat) + " Grabber";
-	case 12: return BotSubStr(cat) + " Sniffer ";
-	case 13: return BotSubStr(cat) + " Shooter";
-	case 14: return BotSubStr(cat) + " OrgaShooter";
-	case 26: return ColorStr(cat) + " Flag";
-	default: return "Cat " + cat;
-	}
+public string categoryString(int cat) {
+	Const const = new Const();
+	return const.CATEGORY_NAMES[cat];
 }
 
 public string researchString(int research) {
-	if (research == ResearchTracked) return "Tracked Bots";
-	if (research == ResearchWinged) return "Winged Bots";
-
-	message("Unrecognized research type!", DisplayError);
-	return "Unrecognized research type!";
+	switch(research) {
+	case ResearchTracked: return "Tracked Bots";
+	case ResearchWinged: return "Winged Bots";
+	case ResearchShooter: return "Shooter Bots";
+	case ResearchDefenseTower: return "Defence Tower";
+	case ResearchNuclearPlant: return "Nuclear";
+	case ResearchThumper: return "Thumper";
+	case ResearchShielder: return "Shilder";
+	case ResearchPhazerShooter: return "Phazer";
+	case ResearchLegged: return "Legged Bots";
+	case ResearchOrgaShooter: return "Organic Shooter";
+	case ResearchRecycler: return "Recycler";
+	case ResearchSubber: return "Subber";
+	case ResearchSniffer: return "Sniffer";
+	default:
+		message("Unrecognized research type!", DisplayError);
+		return "Unrecognized research type!";
+	}
 }
 
 //returns the research needed for the bot's propultion

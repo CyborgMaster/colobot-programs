@@ -217,6 +217,69 @@ public class Bot {
 		return true;
 	}
 
+	bool kill() {
+		int alienType = AlienAnt;
+
+		hoverHeight = 10;
+		rechargeLevel = 0.35;
+		breakOnRefit = true;
+
+		object item;
+
+		aim(-20);
+
+		while (true)
+		{
+			message("Aquiring new target");
+			//try and find one a little ways away first
+			item = radar(alienType, 0, 360, 40);
+			if (item == null) item = radar(alienType);
+			if (item == null) break;
+
+			while (item.isAlive()) {
+				if (!follow(item, 32, 100)) break;
+
+				motor(1,1);
+				if (item != null) {
+					turn(direction(item.position));
+					//turn(-10);
+
+					//calculate the point to go to if we miss
+					point p = alongDirection(item.position, me.orientation, 40);
+
+					//find out which way the ant is facing (and is therefore likely to walk);
+					float face = item.orientation - me.orientation;
+					while (face > 180) face -= 360;
+					while (face < -180) face += 360;
+
+					if (face > 0) {
+						motor(1 - (90 - abs(face - 90)) / 90 * 0.3, 1);
+					} else {
+						motor(1, 1 - (90 - abs(face + 90)) / 90 * 0.3);
+					}
+
+					fire(0.5);
+					wait(0.5); //wait for bullets to get there
+
+					if (item.isAlive()) {
+						message("Missed");
+
+						//goto spot to set up next strafe
+						if (!flyto(p, 2, false)) break;
+					}
+				}
+			}
+			wait(0.1);
+		}
+
+		message("All aliens killed!");
+
+		//get landing spot
+		point p = alongDirection(me.position, me.orientation, 25);
+
+		bot_goto(p, 3);
+	}
+
 	public bool follow(object target, float dis, int matchZ) {
 
 		while(true) {
