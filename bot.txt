@@ -166,7 +166,7 @@ public class Bot {
 
   public bool get(object o) {
 		while (true) {
-			bool success = bot_goto(o.position, 2);
+			bool success = botGoto(o.position, 2);
 			if (!success) return false;
 			turn(direction(o.position));
 			grab();
@@ -187,11 +187,11 @@ public class Bot {
 
 		//find a free spot
 		point free = space(dropPoint, 0, 20, 2);
-		bot_goto(free, 1);
+		botGoto(free, 1);
 		drop();
 	}
 
-	public bool bot_goto(point pos, float tol) {
+	public bool botGoto(point pos, float tol) {
 		if (isFlying()) {
 			return flyto(pos, tol, true);
 		} else {
@@ -284,7 +284,7 @@ public class Bot {
 		//get landing spot
 		point p = alongDirection(me.position, me.orientation, 25);
 
-		bot_goto(p, 3);
+		botGoto(p, 3);
 	}
 
 	public bool follow(object target, float dis, int matchZ) {
@@ -322,7 +322,7 @@ public class Bot {
 				message("Recharging...");
 				bool oldRefit = breakOnRefit;
 				breakOnRefit = false;
-				bot_goto(o.position, 1);
+				botGoto(o.position, 1);
 				breakOnRefit = oldRefit;
 				while(me.energyCell.energyLevel < 1) {
 					wait(1);
@@ -336,7 +336,7 @@ public class Bot {
 					message("Replacing power cell...", DisplayInfo);
 					bool oldRefit = breakOnRefit;
 					breakOnRefit = false;
-					bot_goto(o.position, 2);
+					botGoto(o.position, 2);
 					bool hadLoad = (me.load != null);
 					if (hadLoad) {
 						turn(90);
@@ -384,7 +384,7 @@ public class Bot {
 
 			bool oldRefit = breakOnRefit;
 			breakOnRefit = false;
-			bot_goto(o.position, 1);
+			botGoto(o.position, 1);
 			breakOnRefit = oldRefit;
 			while(me.shieldLevel < 1) {
 				wait(1);

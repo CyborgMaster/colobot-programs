@@ -4,6 +4,8 @@
 // TODO: build repair center before combat
 // TODO: remove destroyed robots from command center
 // TODO: only put one building command for the same type in the queue (share sub goals)
+// TODO: don't use deposit and space for stokpiles, find a spot it myself
+// TODO: split goals into their own file
 
 extern void object::Master() {}
 
@@ -414,7 +416,7 @@ public class CommandCenter {
 
 // 			//find a good spot on the ship
 // 			point p = findShipSpot();
-// 			bot.bot_goto(p, 1);
+// 			bot.botGoto(p, 1);
 // 			drop();
 // 		}
 // 		return true;
@@ -436,7 +438,7 @@ public class CommandCenter {
 
 // 		object ship = radar(SpaceShip);
 // 		point p = findShipSpot();
-// 		bot.bot_goto(p, 1);
+// 		bot.botGoto(p, 1);
 // 		return true;
 // 	}
 // }
@@ -463,7 +465,7 @@ public class BuildBuildingGoal extends Goal {
 		bot.get(g.resource);
 		point p1 = base.findBuildingSpot(type);
 
-		bool success = bot.bot_goto(p1, 1);
+		bool success = bot.botGoto(p1, 1);
 		if (!success) { // Not reachable by wheeled
 			upgradeActor();
 			drop();
@@ -481,7 +483,7 @@ public class BuildBuildingGoal extends Goal {
 		}
 
 		point p2 = alongDirection(p1, a, 8);
-		bot.bot_goto(p2, 1);
+		bot.botGoto(p2, 1);
 		turn(direction(p1));
 		message("Building building '" + categoryString(type) + "'", DisplayInfo);
 		build(type);
@@ -532,7 +534,7 @@ public class BuildBotGoal extends Goal {
 			return false;
 		}
 
-		bot.bot_goto(o.position, 1);
+		bot.botGoto(o.position, 1);
 		drop();
 		move(-5);
 
@@ -541,13 +543,13 @@ public class BuildBotGoal extends Goal {
 
 		point p = bot.me.position;
 		bot.get(powerCell);
-		bot.bot_goto(p, 1);
+		bot.botGoto(p, 1);
 
 		do {
 			o = radar(type, 0, 360, 0, 10);
 		} while (o == null);
 
-		bot.bot_goto(o.position, 1);
+		bot.botGoto(o.position, 1);
 		drop();
 
 		move(-5);
@@ -594,7 +596,7 @@ public class ResearchGoal extends Goal {
 			message("Powering Research Center", DisplayInfo);
 			ReserveResourceGoal g = subGoals[1];
 			bot.get(g.resource);
-			bot.bot_goto(o.position, 1);
+			bot.botGoto(o.position, 1);
 			motor(1,1);
 			wait(0.5);
 			motor(0,0);
@@ -679,7 +681,7 @@ public class GatherGoal extends Goal {
 		}
 		if (type == PowerCell && item.energyLevel < 1) {
 			object o = radar(PowerStation);
-			bot.bot_goto(o.position, 1);
+			bot.botGoto(o.position, 1);
 			while(item.energyLevel < 1) {
 				wait(1);
 			}
