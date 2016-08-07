@@ -794,7 +794,11 @@ public class KillGoal extends Goal {
 		return radar(AlienAnt) == null;
 	}
 
-	void initializeSubGoals() {}
+	void initializeSubGoals() {
+		Base base();
+		subGoals[0] = base.getBuildingGoal(PowerStation);
+		subGoals[0] = base.getBuildingGoal(RepairCenter);
+	}
 
 	bool perform(Bot bot) {
 		bot.kill();
