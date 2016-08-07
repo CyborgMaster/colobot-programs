@@ -3,9 +3,9 @@
 // TODO: remove flag when building built
 // TODO: build repair center before combat
 // TODO: remove destroyed robots from command center
-// TODO: only put one building command for the same type in the queue (share sub goals)
-// TODO: don't use deposit and space for stokpiles, find a spot it myself
+// TODO: don't use deposit and space for stokpiles, find a spot myself
 // TODO: split goals into their own file
+// TODO: build far away building with the winged
 
 extern void object::Master() {}
 
@@ -99,6 +99,7 @@ public class Base {
 	static Stockpile[] stockpiles;
 	static bool hasEnergy = false;
 	static point energyLocation;
+	static BuildBuildingGoal[] buildings;
 
 	synchronized object reserveResource(int type) {
 		return getStockpile(type).reserve();
@@ -140,6 +141,15 @@ public class Base {
 		point p = findSpot(c, center, minDist, stride);
 		produce(p, 0, GreenFlag);
 		return p;
+	}
+
+	synchronized BuildBuildingGoal getBuildingGoal(int type) {
+		for (int i = 0; i < sizeof(buildings); i++) {
+			if (buildings[i].type == type) return buildings[i];
+		}
+		BuildBuildingGoal goal(type);
+		buildings[sizeof(buildings)] = goal;
+		return goal;
 	}
 }
 
@@ -516,7 +526,8 @@ public class BuildBotGoal extends Goal {
 		for (int i = 0; i < sizeof(research); i++) {
 			subGoals[i] = new ResearchGoal(research[i]);
 		}
-		subGoals[sizeof(subGoals)] = new BuildBuildingGoal(BotFactory);
+		Base base();
+		subGoals[sizeof(subGoals)] = base.getBuildingGoal(BotFactory);
 		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(Titanium, categoryString(type));
 		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(PowerCell, categoryString(type));
 	}
@@ -581,7 +592,8 @@ public class ResearchGoal extends Goal {
 	}
 
 	void initializeSubGoals() {
-		subGoals[0] = new BuildBuildingGoal(ResearchCenter);
+		Base base();
+		subGoals[0] = base.getBuildingGoal(ResearchCenter);
 		subGoals[1] = new ReserveResourceGoal(PowerCell, researchString(type));
 	}
 
@@ -668,7 +680,8 @@ public class GatherGoal extends Goal {
 
 	void initializeSubGoals() {
 		if (type == PowerCell) {
-			subGoals[0] = new BuildBuildingGoal(PowerStation);
+			Base base();
+			subGoals[0] = base.getBuildingGoal(PowerStation);
 		}
 	}
 
@@ -737,6 +750,10 @@ public class KillGoal extends Goal {
 		bot.kill();
 		return true;
 	}
+
+	string toString() {
+		return "Kill";
+	}
 }
 
 public void object::slave()
@@ -760,6 +777,7 @@ public void object::slave()
 		}
 
 		message("New goal: " + info.goal.toString(), DisplayInfo);
+		// wait(5);
 		info.status = info.BUSY;
 		bool success = info.goal.perform(new Bot(this));
 		if (success) {
