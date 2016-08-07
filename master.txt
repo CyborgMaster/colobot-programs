@@ -32,7 +32,7 @@ public class Stockpile {
 			items[sizeof(items)] = new StockpileItem(found[i]);
 		}
 
-		//message("Registered " + sizeof(items) + " " + categoryString(type));
+		message("Registered " + sizeof(items) + " " + categoryString(type));
 	}
 
 	synchronized object reserve() {
@@ -144,6 +144,11 @@ public class Goal {
 		throw 1;
 	}
 
+	string toString() {
+		message("toString not implemented!", DisplayError);
+		throw 1;
+	}
+
 	Goal nextGoal(int bot) {
 		if (isComplete()) return null;
 		if (status == IN_PROGRESS) return null;
@@ -194,6 +199,10 @@ public class EnsureBotGoal extends Goal {
 	bool perform(Bot bot) {
 		return isComplete();
 	}
+
+	string toString() {
+		return "Ensure Bot (" + categoryString(type) + ")";
+	}
 }
 
 public class SlaveInfo {
@@ -230,7 +239,10 @@ public class CommandCenter {
 	synchronized Goal nextGoal(int bot) {
 		for (int i = 0; i < sizeof(goals); i++) {
 			Goal g = goals[i].nextGoal(bot);
-			if (g != null) return g;
+			if (g != null) {
+				g.status = g.IN_PROGRESS;
+				return g;
+			}
 		}
 		return null;
 	}
@@ -418,7 +430,7 @@ public class BuildBuildingGoal extends Goal {
 
 	void initializeSubGoals() {
 		//TODO: check if the building type is available
-		subGoals[0] = new ReserveResourceGoal(Titanium);
+		subGoals[0] = new ReserveResourceGoal(Titanium, categoryString(type));
 	}
 
 	bool perform(Bot bot) {
@@ -456,13 +468,17 @@ public class BuildBuildingGoal extends Goal {
 
 		return true;
 	}
+
+	string toString() {
+		return "Build Building (" + categoryString(type) + ")";
+	}
 }
 
 public class BuildBotGoal extends Goal {
-	int botType;
+	int type;
 
-	void BuildBotGoal(int _botType) {
-		botType = _botType;
+	void BuildBotGoal(int _type) {
+		type = _type;
 	}
 
 	bool isComplete() {
@@ -470,13 +486,13 @@ public class BuildBotGoal extends Goal {
 	}
 
 	void initializeSubGoals() {
-		int[] research = botResearch(botType);
+		int[] research = botResearch(type);
 		for (int i = 0; i < sizeof(research); i++) {
 			subGoals[i] = new ResearchGoal(research[i]);
 		}
 		subGoals[sizeof(subGoals)] = new BuildBuildingGoal(BotFactory);
-		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(Titanium);
-		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(PowerCell);
+		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(Titanium, categoryString(type));
+		subGoals[sizeof(subGoals)] = new ReserveResourceGoal(PowerCell, categoryString(type));
 	}
 
 	bool perform(Bot bot) {
@@ -496,15 +512,15 @@ public class BuildBotGoal extends Goal {
 		drop();
 		move(-5);
 
-		message("Building '" + categoryString(botType) + "'", DisplayInfo);
-		o.factory(botType);
+		message("Building '" + categoryString(type) + "'", DisplayInfo);
+		o.factory(type);
 
 		point p = bot.me.position;
 		bot.get(powerCell);
 		bot.bot_goto(p, 1);
 
 		do {
-			o = radar(botType, 0, 360, 0, 10);
+			o = radar(type, 0, 360, 0, 10);
 		} while (o == null);
 
 		bot.bot_goto(o.position, 1);
@@ -521,22 +537,26 @@ public class BuildBotGoal extends Goal {
 
 		return true;
 	}
+
+	string toString() {
+		return "Build Bot (" + categoryString(type) + ")";
+	}
 }
 
 public class ResearchGoal extends Goal {
-	int researchType;
+	int type;
 
-	void ResearchGoal(int _researchType) {
-		researchType = _researchType;
+	void ResearchGoal(int _type) {
+		type = _type;
 	}
 
 	bool isComplete() {
-		researched(researchType);
+		researched(type);
 	}
 
 	void initializeSubGoals() {
 		subGoals[0] = new BuildBuildingGoal(ResearchCenter);
-		subGoals[1] = new ReserveResourceGoal(PowerCell);
+		subGoals[1] = new ReserveResourceGoal(PowerCell, researchString(type));
 	}
 
 	bool perform(Bot bot) {
@@ -557,8 +577,8 @@ public class ResearchGoal extends Goal {
 			drop();
 		}
 
-		message("Researching '" + researchString(researchType) + "'", DisplayInfo);
-		o.research(researchType);
+		message("Researching '" + researchString(type) + "'", DisplayInfo);
+		o.research(type);
 
 		while (o.energyCell.energyLevel > 0.01) {
 			wait(1);
@@ -566,15 +586,21 @@ public class ResearchGoal extends Goal {
 
 		return true;
 	}
+
+	string toString() {
+		return "Research (" + researchString(type) + ")";
+	}
 }
 
 public class ReserveResourceGoal extends Goal {
 	int type;
 	object resource = null;
+	string purpose;
 	Base base = new Base();
 
-	void ReserveResourceGoal(int _type) {
+	void ReserveResourceGoal(int _type, string _purpose) {
 		type = _type;
+		purpose = _purpose;
 		actorBotType = Any;
 	}
 
@@ -590,6 +616,12 @@ public class ReserveResourceGoal extends Goal {
 			subGoals[0] = new GatherGoal(type);
 			return false;
 		}
+
+		return true;
+	}
+
+	string toString() {
+		return "Reserve (" + categoryString(type) + " for " + purpose + ")";
 	}
 }
 
@@ -631,6 +663,10 @@ public class GatherGoal extends Goal {
 		bot.deposit(stockpile.getCenter());
 		stockpile.add(item);
 		return true;
+	}
+
+	string toString() {
+		return "Gather (" + categoryString(type) + ")";
 	}
 }
 
@@ -698,16 +734,18 @@ public void object::slave()
 			command.checkCompletion();
 		}
 
-		message("New goal", DisplayInfo);
-
+		message("New goal: " + info.goal.toString(), DisplayInfo);
+		wait(5);
 		info.status = info.BUSY;
 		info.goal.status = info.goal.IN_PROGRESS;
 		bool success = info.goal.perform(new Bot(this));
 		if (success) {
 			info.goal.status = info.goal.DONE;
+			// message("Finished goal: " + info.goal.toString(), DisplayInfo);
 		} else {
 			info.goal.status = info.goal.NONE;
 		}
+		// wait(5);
 		info.goal = null;
 		info.status = info.FREE;
 	}
