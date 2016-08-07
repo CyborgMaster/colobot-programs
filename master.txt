@@ -5,7 +5,7 @@
 // TODO: remove destroyed robots from command center
 // TODO: don't use deposit and space for stokpiles, find a spot myself
 // TODO: split goals into their own file
-// TODO: build far away building with the winged
+// TODO: fix building radius
 
 extern void object::Master() {}
 
@@ -96,10 +96,26 @@ public class Stockpile {
 }
 
 public class Base {
+	static bool initialized = false;
+	static point center;
+	static bool hasSpaceShip;
 	static Stockpile[] stockpiles;
 	static bool hasEnergy = false;
 	static point energyLocation;
 	static BuildBuildingGoal[] buildings;
+
+	void Base() {
+		if (initialized) return;
+		object ship = radar(SpaceShip);
+		hasSpaceShip = (ship != null);
+		if (hasSpaceShip) {
+			center = ship.position;
+		} else {
+			Const const();
+			center = radar(const.ALL_BOTS).position;
+		}
+		initialized = true;
+	}
 
 	synchronized object reserveResource(int type) {
 		return getStockpile(type).reserve();
@@ -123,22 +139,17 @@ public class Base {
 		SpotChecker c = new BuildingSpotChecker();
 		int stride = 2;
 		float minDist = 0;
-		point center;
+		point origin;
 
 		if (type == PowerStation) {
-			center = energyLocation;
+			origin = energyLocation;
 			stride = 1;
 		} else {
-			object ship = radar(SpaceShip);
-			if (ship != null) {
-				center = ship.position;
-				minDist = 30;
-			} else {
-				center = radar(const.ALL_BOTS).position;
-			}
+			origin = center;
+			if (hasSpaceShip) minDist = 30;
 		}
 
-		point p = findSpot(c, center, minDist, stride);
+		point p = findSpot(c, origin, minDist, stride);
 		produce(p, 0, GreenFlag);
 		return p;
 	}
@@ -208,11 +219,17 @@ public class Goal {
 	}
 
 	void upgradeActor() {
+		int newType;
 		if (canresearch(ResearchWinged)) {
 			actorBotType = WingedGrabber;
 		} else {
 			actorBotType = TrackedGrabber;
 		}
+		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+	}
+
+	bool upgradeActor(int type) {
+		actorBotType = type;
 		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
 	}
 }
@@ -456,9 +473,14 @@ public class CommandCenter {
 public class BuildBuildingGoal extends Goal {
 	int type;
 	Base base = new Base();
+	bool hasBuildSpot = false;
+	point buildSpot;
 
 	void BuildBuildingGoal(int _type) {
 		type = _type;
+		// We start out with any bot, they find the building stop and then determine
+		// what kind of bot is best to build it.
+		actorBotType = Any;
 	}
 
 	bool isComplete() {
@@ -471,11 +493,23 @@ public class BuildBuildingGoal extends Goal {
 	}
 
 	bool perform(Bot bot) {
+		if (!hasBuildSpot) {
+			buildSpot = base.findBuildingSpot(type);
+			int newActorType;
+			if (distance2d(base.center, buildSpot) > 50) {
+				newActorType  = WingedGrabber;
+			} else {
+				newActorType = WheeledGrabber;
+			}
+			upgradeActor(newActorType);
+			hasBuildSpot = true;
+			if (bot.me.category != newActorType) return false;
+		}
+
 		ReserveResourceGoal g = subGoals[0];
 		bot.get(g.resource);
-		point p1 = base.findBuildingSpot(type);
 
-		bool success = bot.botGoto(p1, 1);
+		bool success = bot.botGoto(buildSpot, 1);
 		if (!success) { // Not reachable by wheeled
 			upgradeActor();
 			drop();
@@ -487,20 +521,16 @@ public class BuildBuildingGoal extends Goal {
 		float a;
 		object o = radar(SpaceShip);
 		if (o != null) {
-			a = normalize(angle(o.position, p1) + 180);
+			a = normalize(angle(o.position, buildSpot) + 180);
 		} else {
 			a = normalize(bot.me.orientation + 180);
 		}
 
-		point p2 = alongDirection(p1, a, 8);
+		point p2 = alongDirection(buildSpot, a, 8);
 		bot.botGoto(p2, 1);
-		turn(direction(p1));
+		turn(direction(buildSpot));
 		message("Building building '" + categoryString(type) + "'", DisplayInfo);
 		build(type);
-
-		// do {
-		// 	o = radar(buildingType, 0, 360, 0, 16);
-		// } while (o == null);
 
 		return true;
 	}
