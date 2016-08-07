@@ -1,4 +1,3 @@
-// TODO: build repair center before combat
 // TODO: stockpiles don't need flat ground, put beyond buildings
 // TODO: fix building placement (move back one before dropping)
 // TODO: remove flag when building built
