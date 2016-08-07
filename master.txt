@@ -1,9 +1,9 @@
-// TODO: fix beginning resrouce finding
-// TODO: fix building placement (back one)
+// TODO: fix building placement (move back one before dropping)
 // TODO: stockpiles don't need flat ground
 // TODO: remove flag when building built
 // TODO: build repair center before combat
 // TODO: remove destroyed robots from command center
+// TODO: only put one building command for the same type in the queue (share sub goals)
 
 extern void object::Master() {}
 
@@ -758,7 +758,6 @@ public void object::slave()
 		}
 
 		message("New goal: " + info.goal.toString(), DisplayInfo);
-		wait(5);
 		info.status = info.BUSY;
 		bool success = info.goal.perform(new Bot(this));
 		if (success) {
@@ -768,7 +767,6 @@ public void object::slave()
 			message("Failed goal: " + info.goal.toString(), DisplayWarning);
 			info.goal.status = info.goal.NONE;
 		}
-		// wait(5);
 		info.goal = null;
 		info.status = info.FREE;
 	}
