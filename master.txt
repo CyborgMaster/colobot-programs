@@ -27,7 +27,7 @@ public class Stockpile {
 
 	void Stockpile(int _type) {
 		type = _type;
-		object[] found = radarall(type, 0, 360, 0, 50);
+		object[] found = radarall(type, 0, 360, 0, 10);
 		for (int i = 0; i < sizeof(found); i++) {
 			items[sizeof(items)] = new StockpileItem(found[i]);
 		}
@@ -50,6 +50,10 @@ public class Stockpile {
 			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
 			throw 1;
 		}
+		if (isInStockpile(o)) {
+			message("" + o.category + " already in stockpile!", DisplayError);
+			throw 1;
+		}
 		items[sizeof(items)] = new StockpileItem(o);
 	}
 
@@ -63,8 +67,29 @@ public class Stockpile {
 	}
 
 	synchronized point getDropPoint() {
-		if (!hasCenter) getCenter();
-		return space(center, 0, 20, 2);
+		return space(getCenter(), 0, 20, 2);
+	}
+
+	synchronized bool isInStockpile(object item) {
+		for (int i = 0; i < sizeof(items); i++) {
+			if (items[i].item == item) return true;
+		}
+		return false;
+	}
+
+	synchronized object nextToGather() {
+		point c = getCenter();
+		float minDistance = 30;
+		object item;
+
+		while (true) {
+			item = search(type, c, minDistance);
+			if (!isInStockpile(item)) break;
+			minDistance = distance2d(c, item.position) + 0.1;
+		}
+
+		add(item);
+		return item;
 	}
 }
 
@@ -436,7 +461,6 @@ public class BuildBuildingGoal extends Goal {
 	bool perform(Bot bot) {
 		ReserveResourceGoal g = subGoals[0];
 		bot.get(g.resource);
-
 		point p1 = base.findBuildingSpot(type);
 
 		bool success = bot.bot_goto(p1, 1);
@@ -616,7 +640,6 @@ public class ReserveResourceGoal extends Goal {
 			subGoals[0] = new GatherGoal(type);
 			return false;
 		}
-
 		return true;
 	}
 
@@ -628,6 +651,7 @@ public class ReserveResourceGoal extends Goal {
 public class GatherGoal extends Goal {
 	int type;
 	Stockpile stockpile;
+	object item = null;
 
 	void GatherGoal(int _type) {
 		type = _type;
@@ -647,12 +671,12 @@ public class GatherGoal extends Goal {
 	}
 
 	bool perform(Bot bot) {
-		bool success = bot.get(type, stockpile.getCenter(), 30, false);
+		if (item == null) item = stockpile.nextToGather();
+		bool success = bot.get(item);
 		if (!success) { // Not reachable by wheeled
 			upgradeActor();
 			return false;
 		}
-		object item = bot.me.load;
 		if (type == PowerCell && item.energyLevel < 1) {
 			object o = radar(PowerStation);
 			bot.bot_goto(o.position, 1);
@@ -661,7 +685,6 @@ public class GatherGoal extends Goal {
 			}
 		}
 		bot.deposit(stockpile.getCenter());
-		stockpile.add(item);
 		return true;
 	}
 
@@ -737,12 +760,12 @@ public void object::slave()
 		message("New goal: " + info.goal.toString(), DisplayInfo);
 		wait(5);
 		info.status = info.BUSY;
-		info.goal.status = info.goal.IN_PROGRESS;
 		bool success = info.goal.perform(new Bot(this));
 		if (success) {
 			info.goal.status = info.goal.DONE;
 			// message("Finished goal: " + info.goal.toString(), DisplayInfo);
 		} else {
+			message("Failed goal: " + info.goal.toString(), DisplayWarning);
 			info.goal.status = info.goal.NONE;
 		}
 		// wait(5);
