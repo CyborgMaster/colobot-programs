@@ -173,6 +173,9 @@ public class Bot {
 			if (o == me.load) return true;
 			message("Got the wrong item!");
 			drop();
+			move(-1);
+			turn(90);
+			move(-1);
 		}
 	}
 
