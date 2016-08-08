@@ -5,6 +5,7 @@
 // TODO: split goals into their own file
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
+// TODO: what to do when runs out of batteries?
 
 extern void object::Master() {}
 
@@ -61,7 +62,7 @@ public class Stockpile {
 	synchronized point getCenter() {
 		if (!hasCenter) {
 			Base b = new Base();
-			center = b.findBuildingSpot(Any);
+			center = b.findStockpileSpot();
 			hasCenter = true;
 		}
 		return center;
@@ -134,8 +135,7 @@ public class Base {
 	}
 
 	synchronized point findBuildingSpot(int type) {
-		Const const = new Const();
-		SpotChecker c = new BuildingSpotChecker();
+		SpotChecker checker = new BuildingSpotChecker();
 		int stride = 2;
 		float minDist = 0;
 		point origin;
@@ -148,8 +148,19 @@ public class Base {
 			if (hasSpaceShip) minDist = 30;
 		}
 
-		point p = findSpot(c, origin, minDist, stride);
+		point p = findSpot(checker, origin, minDist, stride);
 		produce(p, 0, GreenFlag);
+		return p;
+	}
+
+	synchronized point findStockpileSpot() {
+		SpotChecker checker = new StockpileSpotChecker();
+		int stride = 4;
+		float minDist = 15;
+		if (hasSpaceShip) minDist += 30;
+
+		point p = findSpot(checker, center, minDist, stride);
+		produce(p, 0, YellowFlag);
 		return p;
 	}
 
@@ -491,7 +502,6 @@ public class CommandCenter {
 
 public class BuildBuildingGoal extends Goal {
 	int type;
-	Base base = new Base();
 	bool hasBuildSpot = false;
 	point buildSpot;
 
@@ -512,6 +522,8 @@ public class BuildBuildingGoal extends Goal {
 	}
 
 	bool perform(Bot bot) {
+		Base base();
+
 		if (!hasBuildSpot) {
 			buildSpot = base.findBuildingSpot(type);
 			int newActorType;
@@ -780,6 +792,16 @@ public class BuildingSpotChecker extends SpotChecker {
 		if (isBuilding(o)) spaceNeeded += 2;
 		if (distance2d(p, o.position) < spaceNeeded) return false;
 		if (flatground(p, 6.5) < 6) return false;
+		return true;
+	}
+}
+
+public class StockpileSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		float spaceNeeded = 10 + radius(o);
+		if (distance2d(p, o.position) < spaceNeeded) return false;
 		return true;
 	}
 }
