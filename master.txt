@@ -1,7 +1,5 @@
-// TODO: stockpiles don't need flat ground, put beyond buildings
 // TODO: fix building placement (move back one before dropping)
 // TODO: remove flag when building built
-// TODO: don't use deposit and space for stokpiles, find a spot myself
 // TODO: split goals into their own file
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
@@ -69,7 +67,8 @@ public class Stockpile {
 	}
 
 	synchronized point getDropPoint() {
-		return space(getCenter(), 0, 20, 2);
+		SpotChecker checker = new ItemSpotChecker();
+		return findSpot(checker, center, 0, 0.5);
 	}
 
 	synchronized bool isInStockpile(object item) {
@@ -760,7 +759,8 @@ public class GatherGoal extends Goal {
 				wait(1);
 			}
 		}
-		bot.deposit(stockpile.getCenter());
+		bot.botGoto(stockpile.getDropPoint(), 1);
+		drop();
 		return true;
 	}
 
@@ -801,6 +801,16 @@ public class StockpileSpotChecker extends SpotChecker {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
 		float spaceNeeded = 10 + radius(o);
+		if (distance2d(p, o.position) < spaceNeeded) return false;
+		return true;
+	}
+}
+
+public class ItemSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		float spaceNeeded = 1 + radius(o);
 		if (distance2d(p, o.position) < spaceNeeded) return false;
 		return true;
 	}

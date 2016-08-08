@@ -18,7 +18,7 @@ public class SpotChecker {
 	}
 }
 
-public point findSpot(SpotChecker checker, point origin, float minDist, int stride) {
+public point findSpot(SpotChecker checker, point origin, float minDist, float stride) {
 	point p = origin;
 	int start = minDist / stride;
 
