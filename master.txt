@@ -1,9 +1,9 @@
-// TODO: fix building placement (move back one before dropping)
 // TODO: remove flag when building built
 // TODO: split goals into their own file
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
 // TODO: what to do when runs out of batteries?
+// TODO: what to do when low on batteries and can't get to recharge (wheeled)
 
 extern void object::Master() {}
 
@@ -544,6 +544,14 @@ public class BuildBuildingGoal extends Goal {
 			upgradeActor();
 			drop();
 			return false;
+		}
+
+		// Put the titanium exactly on the build spot
+		turn(direction(buildSpot));
+		while(abs(distance2d(bot.me.position, buildSpot) - 1.5) > 0.1) {
+			float power = (distance2d(bot.me.position, buildSpot) - 1.5) * 0.5;
+			motor(power, power);
+			wait(0.1);
 		}
 
 		drop();
