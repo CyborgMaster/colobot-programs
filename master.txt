@@ -1,10 +1,11 @@
-// TODO: stockpiles can't be too steep
 // TODO: split goals into their own file
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
 // TODO: what to do when runs out of batteries?
 // TODO: what to do when low on batteries and can't get to recharge (wheeled)
-
+// TODO: don't force reaching the cooldown spot before registering a completed cooldown
+// TODO: deal with the no-fly green spheres
+// TODO: treat yellow flags as same size as stockpile
 extern void object::Master() {}
 
 public class StockpileItem {
