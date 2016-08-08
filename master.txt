@@ -812,6 +812,18 @@ public class StockpileSpotChecker extends SpotChecker {
 		object o = search(Any, p);
 		float spaceNeeded = 10 + radius(o);
 		if (distance2d(p, o.position) < spaceNeeded) return false;
+
+		// Check for "relatively flat
+		float max = topo(p);
+		float min = topo(p);
+
+		for (int angle = 0; angle < 360; angle += 90) {
+			float height = topo(alongDirection(p, angle, 9));
+			if (height > max) max = height;
+			if (height < min) min = height;
+		}
+		if (max - min > 1) return false;
+
 		return true;
 	}
 }
