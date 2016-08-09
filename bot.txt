@@ -179,14 +179,39 @@ public class Bot {
 		}
 	}
 
-	public void deposit(point dropPoint) {
+  public void put(point dropPoint) {
+		put(dropPoint, false);
+	}
+
+	public void put(point dropPoint, bool exact) {
+		if (me.load == null) {
+			message("Nothing to put!");
+			return;
+		}
+
+		botGoto(dropPoint, 1);
+
+		if (exact) {
+			turn(direction(dropPoint));
+			while(abs(distance2d(me.position, dropPoint) - 1.6) > 0.05) {
+				float power = (distance2d(me.position, dropPoint) - 1.6);
+				motor(power, power);
+				wait(0.05);
+			}
+			motor(0, 0);
+		}
+
+		drop();
+	}
+
+	public void deposit(point center) {
 		if (me.load == null) {
 			message("Nothing to deposit!");
 			return;
 		}
 
 		//find a free spot
-		point free = space(dropPoint, 0, 20, 2);
+		point free = space(center, 0, 20, 2);
 		botGoto(free, 1);
 		drop();
 	}

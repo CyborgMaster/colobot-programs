@@ -423,62 +423,37 @@ public class CommandCenter {
 	}
 }
 
-// Loads a certain number of a resource onto the ship
-// public class LoadGoal extends Goal {
-// 	int resource;
-// 	int count;
+//Loads a certain number of a resource onto the ship
+public class LoadGoal extends Goal {
+	int resource;
+	int count;
 
-// 	void LoadGoal(int _resource, int _count) {
-// 		resource = _resource;
-// 		count = _count;
-// 	}
+	void LoadGoal(int _resource, int _count) {
+		resource = _resource;
+		count = _count;
+	}
 
-// 	Goal getSubGoal() {
-// 		object ship = radar(SpaceShip);
-// 		object o = radar(resource);
-// 		if (distance2d(ship.position, o.position) > const.DRIVING_RANGE &&
-// 				canresearch(ResearchWinged)) {
-// 			actorBotType = WingedGrabber;
-// 			Goal g  = ensureBot();
-// 			if (g != null) return g;
-// 		}
-// 		//check for adequate power
-// 		SlaveInfo actor = command.getSlave(actorBotType);
-// 		if (actor != null) {
-// 			if (actor.bot.energyCell.energyLevel * const.FLYING_RANGE <
-// 					distance2d(actor.bot.position, o.position)) {
-// 				Goal g = ensureBuilding(PowerStation);
-// 				if (g != null) return g;
-// 			}
-// 		}
-// 		return null;
-// 	}
+	bool isComplete() {
+		return status == DONE;
+	}
 
-// 	bool perform(Bot bot) {
-// 		bot.hoverHeight = 5;
+	void initializeSubGoals() {
+		for (int i = 0; i < count; i++) {
+			subGoals[i] = new ReserveResourceGoal(resource, "Load");
+		}
+	}
 
-// 		object ship = radar(SpaceShip);
+	bool perform(Bot bot) {
+		object ship = radar(SpaceShip);
 
-// 		for (int i = 0; i < count; i++ ) {
-// 			bool success = bot.get(resource, ship.position, 30, false);
-// 			if (!success) { // Not reachable by wheeled
-// 				if (canresearch(ResearchWinged)) {
-// 					actorBotType = WingedGrabber;
-// 				} else {
-// 					actorBotType = TrackedGrabber;
-// 				}
-// 				ensureBot();
-// 				return false;
-// 			}
-
-// 			//find a good spot on the ship
-// 			point p = findShipSpot();
-// 			bot.botGoto(p, 1);
-// 			drop();
-// 		}
-// 		return true;
-// 	}
-// }
+		for (int i = 0; i < count; i++ ) {
+			ReserveResourceGoal g = subGoals[i];
+			bot.get(g.resource);
+			bot.put(findShipSpot(), true);
+		}
+		return true;
+	}
+}
 
 // Boards the ship for takeoff
 // public class BoardGoal extends Goal {
@@ -507,7 +482,7 @@ public class BuildBuildingGoal extends Goal {
 
 	void BuildBuildingGoal(int _type) {
 		type = _type;
-		// We start out with any bot, they find the building stop and then determine
+		// We start out with any bot, they find the building spot and then determine
 		// what kind of bot is best to build it.
 		actorBotType = Any;
 	}
@@ -547,15 +522,7 @@ public class BuildBuildingGoal extends Goal {
 			return false;
 		}
 
-		// Put the titanium exactly on the build spot
-		turn(direction(buildSpot));
-		while(abs(distance2d(bot.me.position, buildSpot) - 1.5) > 0.1) {
-			float power = (distance2d(bot.me.position, buildSpot) - 1.5) * 0.5;
-			motor(power, power);
-			wait(0.1);
-		}
-
-		drop();
+		bot.put(buildSpot, true);
 
 		float a;
 		object o = radar(SpaceShip);
@@ -770,8 +737,7 @@ public class GatherGoal extends Goal {
 				wait(1);
 			}
 		}
-		bot.botGoto(stockpile.getDropPoint(), 1);
-		drop();
+		bot.put(stockpile.getDropPoint());
 		return true;
 	}
 
