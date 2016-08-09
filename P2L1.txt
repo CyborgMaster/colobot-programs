@@ -5,15 +5,20 @@ void addGoals(CommandCenter command) {
 	command.addGoal(g);
 }
 
+void satelliteReport(Base base) {
+}
+
 extern void object::P2L1() {
 	CommandCenter command = new CommandCenter();
+	command.resetGoals();
+	addGoals(command);
+
+	Base base = new Base();
+	satelliteReport(base);
 
 	object that = this;
 	command.registerSlave(that);
 	command.checkForUnregisteredSlaves(that);
-
-	command.resetGoals();
-	addGoals(command);
 
 	//run slave script
 	slave();

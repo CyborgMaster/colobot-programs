@@ -100,11 +100,14 @@ public class Base {
 	static point center;
 	static bool hasSpaceShip;
 	static Stockpile[] stockpiles;
-	static bool hasEnergy = false;
-	static point energyLocation;
 	static BuildBuildingGoal[] buildings;
 
-	void Base() {
+	// Satellite report
+	static bool hasEnergy = false;
+	static bool energyEverywhere = false;
+	static point energyLocation;
+
+	synchronized void Base() {
 		if (initialized) return;
 		object ship = radar(SpaceShip);
 		hasSpaceShip = (ship != null);
@@ -140,7 +143,12 @@ public class Base {
 		float minDist = 0;
 		point origin;
 
-		if (type == PowerStation) {
+		if (type == PowerStation && !hasEnergy) {
+			message("No underground energy, can't build Power Station!", DisplayError);
+			throw 1;
+		}
+
+		if (type == PowerStation && !energyEverywhere) {
 			origin = energyLocation;
 			stride = 1;
 		} else {
@@ -453,27 +461,29 @@ public class LoadGoal extends Goal {
 		}
 		return true;
 	}
+
+	string toString() {
+		return "Load (" + categoryString(resource) + ")";
+	}
 }
 
 // Boards the ship for takeoff
-// public class BoardGoal extends Goal {
-// 	void BoardGoal(int botType) {
-// 		this.actorBotType = botType;
-// 	}
+public class BoardGoal extends Goal {
+	void BoardGoal(int type) {
+		actorBotType = type;
+	}
 
-// 	Goal getSubGoal() {
-// 		return null;
-// 	}
+	Goal getSubGoal() {
+		return null;
+	}
 
-// 	bool perform(Bot bot) {
-// 		bot.hoverHeight = 5;
-
-// 		object ship = radar(SpaceShip);
-// 		point p = findShipSpot();
-// 		bot.botGoto(p, 1);
-// 		return true;
-// 	}
-// }
+	bool perform(Bot bot) {
+		object ship = radar(SpaceShip);
+		point p = findShipSpot();
+		bot.botGoto(p, 1);
+		return true;
+	}
+}
 
 public class BuildBuildingGoal extends Goal {
 	int type;
@@ -725,11 +735,17 @@ public class GatherGoal extends Goal {
 
 	bool perform(Bot bot) {
 		if (item == null) item = stockpile.nextToGather();
-		bool success = bot.get(item);
-		if (!success) { // Not reachable by wheeled
-			upgradeActor();
+
+		//check for adequate power
+		if (bot.me.energyCell.energyLevel * const.FLYING_RANGE <
+				distance2d(bot.me.position, item.position) &&
+				radar(PowerStation) == null) {
+			Base base();
+			subGoals[sizeof(subGoals)] = base.getBuildingGoal(PowerStation);
 			return false;
 		}
+
+		bool success = bot.get(item);
 		if (type == PowerCell && item.energyLevel < 1) {
 			object o = radar(PowerStation);
 			bot.botGoto(o.position, 1);
