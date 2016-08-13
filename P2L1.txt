@@ -1,8 +1,6 @@
 void addGoals(CommandCenter command) {
 	Goal g = new LoadGoal(TitaniumOre, 4);
 	command.addGoal(g);
-	g = new BoardGoal(WheeledGrabber);
-	command.addGoal(g);
 }
 
 void satelliteReport(Base base) {
@@ -15,10 +13,10 @@ extern void object::P2L1() {
 
 	Base base = new Base();
 	satelliteReport(base);
+	base.registerStartingResources(this);
 
-	object that = this;
-	command.registerSlave(that);
-	command.checkForUnregisteredSlaves(that);
+	command.registerSlave(this);
+	command.checkForUnregisteredSlaves(this);
 
 	//run slave script
 	slave();

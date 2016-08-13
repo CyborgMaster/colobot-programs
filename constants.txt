@@ -8,6 +8,7 @@ public class Const {
 	static int[] ALL_BOTS;
 	static int[] ALL_ALIENS;
 	static int[] ALL_BUILDINGS;
+	static int[] ALL_RESOURCES;
 	static float[] RADII;
 	static string[] CATEGORY_NAMES;
 
@@ -66,6 +67,15 @@ public class Const {
 				Vault
 			};
 			ALL_BUILDINGS = a3;
+
+			int[] a4 = {
+				TitaniumOre,
+				UraniumOre,
+				Titanium,
+				PowerCell,
+				NuclearCell
+			};
+			ALL_RESOURCES = a4;
 
 			RADII[2] = 32.25; //Gantry Crane
 			RADII[3] = 02.00; //Space Ship; Bottom Width of 20.00, Top Width of 8.25

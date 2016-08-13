@@ -1,3 +1,4 @@
+// TODO: find all resources at start of level
 // TODO: split goals into their own file
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
@@ -28,12 +29,6 @@ public class Stockpile {
 
 	void Stockpile(int _type) {
 		type = _type;
-		object[] found = radarall(type, 0, 360, 0, 10);
-		for (int i = 0; i < sizeof(found); i++) {
-			items[sizeof(items)] = new StockpileItem(found[i]);
-		}
-
-		message("Registered " + sizeof(items) + " " + categoryString(type));
 	}
 
 	synchronized object reserve() {
@@ -56,6 +51,12 @@ public class Stockpile {
 			throw 1;
 		}
 		items[sizeof(items)] = new StockpileItem(o);
+	}
+
+	synchronized void addAll(object[] resources) {
+		for (int i = 0; i < sizeof(resources); i++) {
+			add(resources[i]);
+		}
 	}
 
 	synchronized point getCenter() {
@@ -118,6 +119,26 @@ public class Base {
 			center = radar(const.ALL_BOTS).position;
 		}
 		initialized = true;
+	}
+
+	synchronized void registerStartingResources(object bot) {
+		// TODO: write searchAll (like radarAll) so we don't have to depend on the
+		// robot being on the space ship;
+		if (distance2d(bot.position, center) > 8) {
+			message("Robot is too far from base center to register resoruces", DisplayError);
+			throw 1;
+		}
+
+		Const const();
+		int[] types = const.ALL_RESOURCES;
+		for (int i = 0; i < sizeof(types); i++) {
+			object[] resources = radarall(types[i], 0, 360, 0, 15);
+			if (sizeof(resources) > 0 ) {
+				// This initializes the stockpile if it doesn't exist
+				getStockpile(types[i]).addAll(resources);
+				message("Registered " + sizeof(resources) + " " + categoryString(types[i]));
+			}
+		}
 	}
 
 	synchronized object reserveResource(int type) {
@@ -468,6 +489,7 @@ public class LoadGoal extends Goal {
 }
 
 // Boards the ship for takeoff
+// TODO: finish converting this to the new API
 public class BoardGoal extends Goal {
 	void BoardGoal(int type) {
 		actorBotType = type;
@@ -666,7 +688,7 @@ public class ResearchGoal extends Goal {
 		message("Researching '" + researchString(type) + "'", DisplayInfo);
 		o.research(type);
 
-		while (o.energyCell.energyLevel > 0.01) {
+		while (!isComplete()) {
 			wait(1);
 		}
 
@@ -782,7 +804,7 @@ public class BuildingSpotChecker extends SpotChecker {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
 		float spaceNeeded = 6 + radius(o);
-		// if (isBuilding(o)) spaceNeeded += 2;
+		if (isBuilding(o)) spaceNeeded += 1;
 		if (distance2d(p, o.position) < spaceNeeded) return false;
 		if (flatground(p, 6.5) < 6) return false;
 		return true;
@@ -815,7 +837,9 @@ public class ItemSpotChecker extends SpotChecker {
 	public bool check(point p) {
 		if (topo(p) < 0) return false;
 		object o = search(Any, p);
-		float spaceNeeded = 1 + radius(o);
+		// IDEA: if we used put(point, true) and dropped exactly, we should be able
+		// to reduce the amount of open space needed.
+		float spaceNeeded = 2 + radius(o);
 		if (distance2d(p, o.position) < spaceNeeded) return false;
 		return true;
 	}
