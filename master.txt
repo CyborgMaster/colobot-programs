@@ -588,7 +588,7 @@ public class Bot {
 			message("Got the wrong item!");
 			drop();
 			move(-1);
-			if (direciton(o.position) > 0) {
+			if (direction(o.position) > 0) {
 				turn(90);
 			} else {
 				turn(-90);
@@ -1051,21 +1051,29 @@ public class LoadGoal extends Goal {
 }
 
 // Boards the ship for takeoff
-// TODO: finish converting this to the new API
 public class BoardGoal extends Goal {
 	void BoardGoal(int type) {
 		actorBotType = type;
 	}
 
-	Goal getSubGoal() {
-		return null;
+	bool isComplete() {
+		object ship = radar(SpaceShip);
+		object bot = search(actorBotType, ship.position);
+		if (bot == null) return false;
+		return distance2d(ship.position, bot.position) < 10;
 	}
+
+	void initializeSubGoals() {}
 
 	bool perform(Bot bot) {
 		object ship = radar(SpaceShip);
 		point p = findShipSpot();
 		bot.botGoto(p, 1);
 		return true;
+	}
+
+	string toString() {
+		return "Board (" + categoryString(actorBotType) + ")";
 	}
 }
 
