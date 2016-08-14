@@ -1,0 +1,24 @@
+void addGoals(CommandCenter command) {
+	Goal g = new LoadGoal(BlackBox, 1);
+	command.addGoal(g);
+}
+
+void satelliteReport(Base base) {
+	base.hasEnergy = false;
+}
+
+extern void object::P3L3() {
+	CommandCenter command = new CommandCenter();
+	command.resetGoals();
+	addGoals(command);
+
+	Base base = new Base();
+	satelliteReport(base);
+
+	object that = this;
+	command.registerSlave(that);
+	command.checkForUnregisteredSlaves(that);
+
+	//run slave script
+	slave();
+}
