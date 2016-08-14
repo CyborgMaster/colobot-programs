@@ -545,7 +545,6 @@ public class Bot {
 	point lastPos;
 	bool notMoving = false;
 	float stuckTime = 0;
-	int stuckCount = 0;
 
 	//configurable parameters
 	float hoverHeight = 10;
@@ -589,8 +588,12 @@ public class Bot {
 			message("Got the wrong item!");
 			drop();
 			move(-1);
-			turn(90);
-			move(-1);
+			if (direciton(o.position) > 0) {
+				turn(90);
+			} else {
+				turn(-90);
+			}
+			move(1);
 		}
 	}
 
@@ -655,20 +658,7 @@ public class Bot {
 				err = goto(pos);
 				arrived = true;
 			} catch (isStuck()) {
-				message("Stuck!");
-				abort();
-				jet(1);
-				motor(-1,-1);
-				wait(1);
-				if (direction(pos) > 0) {
-					turn(90);
-				} else {
-					turn(-90);
-				}
-				motor(1,1);
-				wait(1);
-				motor(0,0);
-				jet(0);
+				unstick();
 			}
 		}
 		errmode(1);
@@ -694,20 +684,41 @@ public class Bot {
 		}
 	}
 
+  void unstick() {
+		message("Stuck!");
+		abort();
+		jet(1);
+		motor(-1,-1);
+		wait(1);
+		if (rand() > 0.5) {
+			turn(90);
+		} else {
+			turn(-90);
+		}
+		motor(1,1);
+		wait(1);
+		motor(0,0);
+		jet(0);
+	}
+
 	public bool flyto(point pos, float tollerance, bool land) {
 		while(distance2d(me.position, pos) > tollerance) {
-			bool refit;
-			refit = checkTemperature();
-			refit = checkPower(rechargeLevel) || refit;
-			refit = checkShields(0.5) || refit;
-			if (refit && breakOnRefit) return false;
-
+			if (checkRefit() && breakOnRefit) return false;
+			checkStuck();
 			setEngines(pos, land, -1);
 			wait(0.1);
 		}
 
 		motor(0,0);
 		return true;
+	}
+
+	bool checkRefit() {
+		bool refit;
+		refit = checkTemperature();
+		refit = checkPower(rechargeLevel) || refit;
+		refit = checkShields(0.5) || refit;
+		return refit;
 	}
 
 	bool kill() {
@@ -915,26 +926,11 @@ public class Bot {
 		return false;
 	}
 
+  void checkStuck() {
+		if (isStuck()) unstick();
+	}
+
 	public void setEngines(point pos, bool land, int matchZ) {
-		//check for stuck
-		if (distance(me.position, lastPos) < 0.25) {
-			if (stuckCount++ >= 10) {
-				message("stuck!");
-
-				//try moving around it
-				jet(1);
-				motor(-1,-1);
-				wait(1);
-				turn(90);
-				motor(1,1);
-				wait(1);
-				return;
-			}
-		} else {
-			stuckCount = 0;
-			lastPos = me.position;
-		}
-
 		//Set motors
 		float ml, mr;
 
