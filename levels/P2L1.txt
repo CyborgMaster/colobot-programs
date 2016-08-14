@@ -1,23 +1,13 @@
-void addGoals(CommandCenter command) {
-	Goal g = new LoadGoal(TitaniumOre, 4);
-	command.addGoal(g);
-}
+public class P2L1 extends Level {
+	void addGoals(CommandCenter command) {
+		Goal g = new LoadGoal(TitaniumOre, 4);
+		command.addGoal(g);
+	}
 
-void satelliteReport(Base base) {
+	void satelliteReport(Base base) {}
 }
 
 extern void object::P2L1() {
-	CommandCenter command = new CommandCenter();
-	command.resetGoals();
-	addGoals(command);
-
-	Base base = new Base();
-	satelliteReport(base);
-	base.registerStartingResources(this);
-
-	command.registerSlave(this);
-	command.checkForUnregisteredSlaves(this);
-
-	//run slave script
-	slave();
+	Level level = new P2L1();
+	level.solve(this);
 }

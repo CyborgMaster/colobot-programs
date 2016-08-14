@@ -514,6 +514,34 @@ point findShipSpot() {
 	return findSpot(c, o.position, 0, 1);
 }
 
+public class Level {
+	void addGoals(CommandCenter command) {
+		message("addGoals not implimented!", DisplayError);
+		throw 1;
+	}
+
+	void satelliteReport(Base base) {
+		message("sateliteReport not implimented!", DisplayError);
+		throw 1;
+	}
+
+	void solve(object bot) {
+		CommandCenter command = new CommandCenter();
+		command.resetGoals();
+		addGoals(command);
+
+		Base base = new Base();
+		satelliteReport(base);
+		base.registerStartingResources(bot);
+
+		command.registerSlave(bot);
+		command.checkForUnregisteredSlaves(bot);
+
+		//run slave script
+		bot.slave();
+	}
+}
+
 public class ShipSpotChecker extends SpotChecker {
 	public bool check(point p) {
 		object o = search(Any, p);
