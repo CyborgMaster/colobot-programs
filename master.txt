@@ -1,3 +1,4 @@
+// TODO: sometime driving gets stuck on starting
 // TODO: load should allow loading each resource as it is gathered
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
@@ -1052,23 +1053,25 @@ public class LoadGoal extends Goal {
 
 // Boards the ship for takeoff
 public class BoardGoal extends Goal {
+	object boardedBot = null;
+
 	void BoardGoal(int type) {
 		actorBotType = type;
 	}
 
 	bool isComplete() {
-		object ship = radar(SpaceShip);
-		object bot = search(actorBotType, ship.position);
-		if (bot == null) return false;
-		return distance2d(ship.position, bot.position) < 10;
+		if (boardedBot == null) return false;
+		return distance2d(radar(SpaceShip).position, boardedBot.position) < 10;
 	}
 
 	void initializeSubGoals() {}
 
 	bool perform(Bot bot) {
+		boardedBot = null;
 		object ship = radar(SpaceShip);
 		point p = findShipSpot();
 		bot.botGoto(p, 1);
+		boardedBot = bot.me;
 		return true;
 	}
 
