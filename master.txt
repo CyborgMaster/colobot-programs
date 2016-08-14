@@ -1,5 +1,4 @@
-// TODO: find all resources at start of level
-// TODO: split goals into their own file
+// TODO: load should allow loading each resource as it is gathered
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
 // TODO: what to do when runs out of batteries?
@@ -543,8 +542,10 @@ public class Bot {
 
 	object me;
 	int state;
-	int stuckCount = 0;
 	point lastPos;
+	bool notMoving = false;
+	float stuckTime = 0;
+	int stuckCount = 0;
 
 	//configurable parameters
 	float hoverHeight = 10;
@@ -630,23 +631,66 @@ public class Bot {
 		drop();
 	}
 
+  public bool botGoto(point pos) {
+    return botGoto(pos, 1);
+	}
+
 	public bool botGoto(point pos, float tol) {
 		if (isFlying()) {
 			return flyto(pos, tol, true);
 		} else {
-			checkPower(rechargeLevel);
-			checkShields(0.5);
+			return driveTo(pos);
+		}
+	}
 
-			// TODO: don't use errmode 0 and instead use try catch, which allows us to
-			// deal with getting stuck on a slope.
-			errmode(0);
-			int err = goto(pos);
-			errmode(1);
-			if (err != 0) {
-				message("Unreachable: " + err);
-				return false;
+	bool driveTo(point pos) {
+		checkPower(rechargeLevel);
+		checkShields(0.5);
+
+		errmode(0);
+		int err = 0;
+		bool arrived = false;
+		while (!arrived) {
+			try {
+				err = goto(pos);
+				arrived = true;
+			} catch (isStuck()) {
+				message("Stuck!");
+				abort();
+				jet(1);
+				motor(-1,-1);
+				wait(1);
+				if (direction(pos) > 0) {
+					turn(90);
+				} else {
+					turn(-90);
+				}
+				motor(1,1);
+				wait(1);
+				motor(0,0);
+				jet(0);
 			}
-			return true;
+		}
+		errmode(1);
+		if (err != 0) {
+			message("Unreachable: " + err);
+			return false;
+		}
+		return true;
+	}
+
+	bool isStuck() {
+		if (distance(me.position, lastPos) < 0.25) {
+			if (notMoving) {
+				return abstime() - stuckTime > 3;
+			} else {
+				notMoving = true;
+				stuckTime = abstime();
+			}
+		} else {
+			notMoving = false;
+			lastPos = me.position;
+			return false;
 		}
 	}
 
@@ -658,7 +702,7 @@ public class Bot {
 			refit = checkShields(0.5) || refit;
 			if (refit && breakOnRefit) return false;
 
-			moveTo(pos, land, -1);
+			setEngines(pos, land, -1);
 			wait(0.1);
 		}
 
@@ -730,7 +774,6 @@ public class Bot {
 	}
 
 	public bool follow(object target, float dis, int matchZ) {
-
 		while(true) {
 			if (target == null or !target.isAlive()) {
 				return false;
@@ -749,14 +792,12 @@ public class Bot {
 
 			point p = target.position;
 			p.z += 10;
-			moveTo(p, false, matchZ);
+			setEngines(p, false, matchZ);
 			wait(0.1);
 		}
 	}
 
 	bool checkPower(float minLevel) {
-
-		//check for out of power
 		if (state == NORMAL && me.energyCell.energyLevel < minLevel) {
 			object o = radar(PowerStation);
 			if (o != null) {
@@ -874,8 +915,7 @@ public class Bot {
 		return false;
 	}
 
-	public void moveTo(point pos, bool land, int matchZ) {
-
+	public void setEngines(point pos, bool land, int matchZ) {
 		//check for stuck
 		if (distance(me.position, lastPos) < 0.25) {
 			if (stuckCount++ >= 10) {
