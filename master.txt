@@ -9,315 +9,6 @@
 // TODO: treat yellow flags as same size as stockpile
 extern void object::Master() {}
 
-public class StockpileItem {
-	static int FREE = 0;
-	static int RESERVED = 1;
-	int status;
-	object item;
-
-	void StockpileItem(object _item) {
-		item = _item;
-		status = FREE;
-	}
-}
-
-public class Stockpile {
-	int type; // Resource
-	private point center;
-	private bool hasCenter = false;
-	private StockpileItem[] items;
-
-	void Stockpile(int _type) {
-		type = _type;
-	}
-
-	synchronized object reserve() {
-		for (int i = 0; i < sizeof(items); i++) {
-			if (items[i].status == items[i].FREE) {
-				items[i].status = items[i].RESERVED;
-				return items[i].item;
-			}
-		}
-		return null;
-	}
-
-	synchronized void add(object o) {
-		if (o.category != type) {
-			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
-			throw 1;
-		}
-		if (isInStockpile(o)) {
-			message("" + o.category + " already in stockpile!", DisplayError);
-			throw 1;
-		}
-		items[sizeof(items)] = new StockpileItem(o);
-	}
-
-	synchronized void addAll(object[] resources) {
-		for (int i = 0; i < sizeof(resources); i++) {
-			add(resources[i]);
-		}
-	}
-
-	synchronized point getCenter() {
-		if (!hasCenter) {
-			Base b = new Base();
-			center = b.findStockpileSpot();
-			hasCenter = true;
-		}
-		return center;
-	}
-
-	synchronized point getDropPoint() {
-		SpotChecker checker = new ItemSpotChecker();
-		return findSpot(checker, center, 0, 0.5);
-	}
-
-	synchronized bool isInStockpile(object item) {
-		for (int i = 0; i < sizeof(items); i++) {
-			if (items[i].item == item) return true;
-		}
-		return false;
-	}
-
-	synchronized object nextToGather() {
-		point c = getCenter();
-		float minDistance = 30;
-		object item;
-
-		while (true) {
-			item = search(type, c, minDistance);
-			if (!isInStockpile(item)) break;
-			minDistance = distance2d(c, item.position) + 0.1;
-		}
-
-		add(item);
-		return item;
-	}
-}
-
-public class Base {
-	static bool initialized = false;
-	static point center;
-	static bool hasSpaceShip;
-	static Stockpile[] stockpiles;
-	static BuildBuildingGoal[] buildings;
-
-	// Satellite report
-	static bool hasEnergy = false;
-	static bool energyEverywhere = false;
-	static point energyLocation;
-
-	synchronized void Base() {
-		if (initialized) return;
-		object ship = radar(SpaceShip);
-		hasSpaceShip = (ship != null);
-		if (hasSpaceShip) {
-			center = ship.position;
-		} else {
-			Const const();
-			center = radar(const.ALL_BOTS).position;
-		}
-		initialized = true;
-	}
-
-	synchronized void registerStartingResources(object bot) {
-		// TODO: write searchAll (like radarAll) so we don't have to depend on the
-		// robot being on the space ship;
-		if (distance2d(bot.position, center) > 8) {
-			message("Robot is too far from base center to register resoruces", DisplayError);
-			throw 1;
-		}
-
-		Const const();
-		int[] types = const.ALL_RESOURCES;
-		for (int i = 0; i < sizeof(types); i++) {
-			object[] resources = radarall(types[i], 0, 360, 0, 15);
-			if (sizeof(resources) > 0 ) {
-				// This initializes the stockpile if it doesn't exist
-				getStockpile(types[i]).addAll(resources);
-				message("Registered " + sizeof(resources) + " " + categoryString(types[i]));
-			}
-		}
-	}
-
-	synchronized object reserveResource(int type) {
-		return getStockpile(type).reserve();
-	}
-
-	synchronized Stockpile getStockpile(int type) {
-		for (int i = 0; i < sizeof(stockpiles); i++) {
-			if (stockpiles[i].type == type) return stockpiles[i];
-		}
-		return initStockpile(type);
-	}
-
-	synchronized Stockpile initStockpile(int type) {
-		Stockpile pile = new Stockpile(type);
-		stockpiles[sizeof(stockpiles)] = pile;
-		return pile;
-	}
-
-	synchronized point findBuildingSpot(int type) {
-		SpotChecker checker = new BuildingSpotChecker();
-		int stride = 2;
-		float minDist = 0;
-		point origin;
-
-		if (type == PowerStation && !hasEnergy) {
-			message("No underground energy, can't build Power Station!", DisplayError);
-			throw 1;
-		}
-
-		if (type == PowerStation && !energyEverywhere) {
-			origin = energyLocation;
-			stride = 1;
-		} else {
-			origin = center;
-			if (hasSpaceShip) minDist = 30;
-		}
-
-		point p = findSpot(checker, origin, minDist, stride);
-		produce(p, 0, GreenFlag);
-		return p;
-	}
-
-	synchronized point findStockpileSpot() {
-		SpotChecker checker = new StockpileSpotChecker();
-		int stride = 4;
-		float minDist = 15;
-		if (hasSpaceShip) minDist += 30;
-
-		point p = findSpot(checker, center, minDist, stride);
-		produce(p, 0, YellowFlag);
-		return p;
-	}
-
-	synchronized BuildBuildingGoal getBuildingGoal(int type) {
-		for (int i = 0; i < sizeof(buildings); i++) {
-			if (buildings[i].type == type) return buildings[i];
-		}
-		BuildBuildingGoal goal(type);
-		buildings[sizeof(buildings)] = goal;
-		return goal;
-	}
-}
-
-public class Goal {
-	static int NONE = 0;
-	static int IN_PROGRESS = 1;
-	static int DONE = 2;
-
-	static Const const = new Const();
-
-	int actorBotType = WheeledGrabber;
-	int status = 0; //NONE
-	Goal ensureActorSubGoal;
-	bool subGoalsInitialized = false;
-	Goal[] subGoals;
-
-	bool isComplete() {
-		message("isComplete not implemented!", DisplayError);
-		throw 1;
-	}
-
-	void initializeSubGoals() {
-		message("initializeSubGoals not implemented!", DisplayError);
-		throw 1;
-	}
-
-	bool perform(Bot bot) {
-		message("perform not implemented!", DisplayError);
-		throw 1;
-	}
-
-	string toString() {
-		message("toString not implemented!", DisplayError);
-		throw 1;
-	}
-
-	Goal nextGoal(int bot) {
-		if (isComplete()) return null;
-		if (status == IN_PROGRESS) return null;
-		if (!subGoalsInitialized) {
-			ensureActorSubGoal = new EnsureBotGoal(actorBotType);
-			initializeSubGoals();
-			subGoalsInitialized = true;
-		}
-		Goal g = ensureActorSubGoal.nextGoal(bot);
-		if (g != null) return g;
-		bool notReady = false;
-		for (int i = 0; i < sizeof(subGoals); i++) {
-			if (!subGoals[i].isComplete()) notReady = true;
-			g = subGoals[i].nextGoal(bot);
-			if (g != null) return g;
-		}
-		if (notReady) return null;
-		if (actorBotType == Any || actorBotType == bot) return this;
-		return null;
-	}
-
-	void upgradeActor() {
-		int newType;
-		if (canresearch(ResearchWinged)) {
-			actorBotType = WingedGrabber;
-		} else {
-			actorBotType = TrackedGrabber;
-		}
-		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
-	}
-
-	bool upgradeActor(int type) {
-		actorBotType = type;
-		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
-	}
-}
-
-public class EnsureBotGoal extends Goal {
-	int type;
-
-	void EnsureBotGoal(int _type) {
-		type = _type;
-	}
-
-	bool isComplete() {
-		CommandCenter command = new CommandCenter();
-		return command.hasSlave(type);
-	}
-
-	void initializeSubGoals() {
-		subGoals[0] = new BuildBotGoal(type);
-	}
-
-	bool perform(Bot bot) {
-		if (subGoals[0].status == DONE && !isComplete()) {
-			subGoals[0] = new BuildBotGoal(type);
-		}
-
-		return isComplete();
-	}
-
-	string toString() {
-		return "Ensure Bot (" + categoryString(type) + ")";
-	}
-}
-
-public class SlaveInfo {
-	static int FREE = 0;
-	static int BUSY = 1;
-	static int DESTROYED = 2;
-
-	object bot;
-	int status;
-	Goal goal;
-
-	void SlaveInfo(object slaveBot) {
-		bot = slaveBot;
-		status = FREE;
-		goal = null;
-	}
-}
-
 public class CommandCenter {
 	static Const const = new Const();
 	static SlaveInfo slaves[] = {};
@@ -449,6 +140,413 @@ public class CommandCenter {
 				}
 			}
 		}
+	}
+}
+
+public class SlaveInfo {
+	static int FREE = 0;
+	static int BUSY = 1;
+	static int DESTROYED = 2;
+
+	object bot;
+	int status;
+	Goal goal;
+
+	void SlaveInfo(object slaveBot) {
+		bot = slaveBot;
+		status = FREE;
+		goal = null;
+	}
+}
+
+public class Goal {
+	static int NONE = 0;
+	static int IN_PROGRESS = 1;
+	static int DONE = 2;
+
+	static Const const = new Const();
+
+	int actorBotType = WheeledGrabber;
+	int status = 0; //NONE
+	Goal ensureActorSubGoal;
+	bool subGoalsInitialized = false;
+	Goal[] subGoals;
+
+	bool isComplete() {
+		message("isComplete not implemented!", DisplayError);
+		throw 1;
+	}
+
+	void initializeSubGoals() {
+		message("initializeSubGoals not implemented!", DisplayError);
+		throw 1;
+	}
+
+	bool perform(Bot bot) {
+		message("perform not implemented!", DisplayError);
+		throw 1;
+	}
+
+	string toString() {
+		message("toString not implemented!", DisplayError);
+		throw 1;
+	}
+
+	Goal nextGoal(int bot) {
+		if (isComplete()) return null;
+		if (status == IN_PROGRESS) return null;
+		if (!subGoalsInitialized) {
+			ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+			initializeSubGoals();
+			subGoalsInitialized = true;
+		}
+		Goal g = ensureActorSubGoal.nextGoal(bot);
+		if (g != null) return g;
+		bool notReady = false;
+		for (int i = 0; i < sizeof(subGoals); i++) {
+			if (!subGoals[i].isComplete()) notReady = true;
+			g = subGoals[i].nextGoal(bot);
+			if (g != null) return g;
+		}
+		if (notReady) return null;
+		if (actorBotType == Any || actorBotType == bot) return this;
+		return null;
+	}
+
+	void upgradeActor() {
+		int newType;
+		if (canresearch(ResearchWinged)) {
+			actorBotType = WingedGrabber;
+		} else {
+			actorBotType = TrackedGrabber;
+		}
+		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+	}
+
+	bool upgradeActor(int type) {
+		actorBotType = type;
+		ensureActorSubGoal = new EnsureBotGoal(actorBotType);
+	}
+}
+
+public class Base {
+	static bool initialized = false;
+	static point center;
+	static bool hasSpaceShip;
+	static Stockpile[] stockpiles;
+	static BuildBuildingGoal[] buildings;
+
+	// Satellite report
+	static bool hasEnergy = false;
+	static bool energyEverywhere = false;
+	static point energyLocation;
+
+	synchronized void Base() {
+		if (initialized) return;
+		object ship = radar(SpaceShip);
+		hasSpaceShip = (ship != null);
+		if (hasSpaceShip) {
+			center = ship.position;
+		} else {
+			Const const();
+			center = radar(const.ALL_BOTS).position;
+		}
+		initialized = true;
+	}
+
+	synchronized void registerStartingResources(object bot) {
+		// TODO: write searchAll (like radarAll) so we don't have to depend on the
+		// robot being on the space ship;
+		if (distance2d(bot.position, center) > 8) {
+			message("Robot is too far from base center to register resoruces", DisplayError);
+			throw 1;
+		}
+
+		Const const();
+		int[] types = const.ALL_RESOURCES;
+		for (int i = 0; i < sizeof(types); i++) {
+			object[] resources = radarall(types[i], 0, 360, 0, 15);
+			if (sizeof(resources) > 0 ) {
+				// This initializes the stockpile if it doesn't exist
+				getStockpile(types[i]).addAll(resources);
+				message("Registered " + sizeof(resources) + " " + categoryString(types[i]));
+			}
+		}
+	}
+
+	synchronized object reserveResource(int type) {
+		return getStockpile(type).reserve();
+	}
+
+	synchronized Stockpile getStockpile(int type) {
+		for (int i = 0; i < sizeof(stockpiles); i++) {
+			if (stockpiles[i].type == type) return stockpiles[i];
+		}
+		return initStockpile(type);
+	}
+
+	synchronized Stockpile initStockpile(int type) {
+		Stockpile pile = new Stockpile(type);
+		stockpiles[sizeof(stockpiles)] = pile;
+		return pile;
+	}
+
+	synchronized point findBuildingSpot(int type) {
+		SpotChecker checker = new BuildingSpotChecker();
+		int stride = 2;
+		float minDist = 0;
+		point origin;
+
+		if (type == PowerStation && !hasEnergy) {
+			message("No underground energy, can't build Power Station!", DisplayError);
+			throw 1;
+		}
+
+		if (type == PowerStation && !energyEverywhere) {
+			origin = energyLocation;
+			stride = 1;
+		} else {
+			origin = center;
+			if (hasSpaceShip) minDist = 30;
+		}
+
+		point p = findSpot(checker, origin, minDist, stride);
+		produce(p, 0, GreenFlag);
+		return p;
+	}
+
+	synchronized point findStockpileSpot() {
+		SpotChecker checker = new StockpileSpotChecker();
+		int stride = 4;
+		float minDist = 15;
+		if (hasSpaceShip) minDist += 30;
+
+		point p = findSpot(checker, center, minDist, stride);
+		produce(p, 0, YellowFlag);
+		return p;
+	}
+
+	synchronized BuildBuildingGoal getBuildingGoal(int type) {
+		for (int i = 0; i < sizeof(buildings); i++) {
+			if (buildings[i].type == type) return buildings[i];
+		}
+		BuildBuildingGoal goal(type);
+		buildings[sizeof(buildings)] = goal;
+		return goal;
+	}
+}
+
+public class Stockpile {
+	int type; // Resource
+	private point center;
+	private bool hasCenter = false;
+	private StockpileItem[] items;
+
+	void Stockpile(int _type) {
+		type = _type;
+	}
+
+	synchronized object reserve() {
+		for (int i = 0; i < sizeof(items); i++) {
+			if (items[i].status == items[i].FREE) {
+				items[i].status = items[i].RESERVED;
+				return items[i].item;
+			}
+		}
+		return null;
+	}
+
+	synchronized void add(object o) {
+		if (o.category != type) {
+			message("Wrong type '" + o.category + "' for stockpile " + type, DisplayError);
+			throw 1;
+		}
+		if (isInStockpile(o)) {
+			message("" + o.category + " already in stockpile!", DisplayError);
+			throw 1;
+		}
+		items[sizeof(items)] = new StockpileItem(o);
+	}
+
+	synchronized void addAll(object[] resources) {
+		for (int i = 0; i < sizeof(resources); i++) {
+			add(resources[i]);
+		}
+	}
+
+	synchronized point getCenter() {
+		if (!hasCenter) {
+			Base b = new Base();
+			center = b.findStockpileSpot();
+			hasCenter = true;
+		}
+		return center;
+	}
+
+	synchronized point getDropPoint() {
+		SpotChecker checker = new ItemSpotChecker();
+		return findSpot(checker, center, 0, 0.5);
+	}
+
+	synchronized bool isInStockpile(object item) {
+		for (int i = 0; i < sizeof(items); i++) {
+			if (items[i].item == item) return true;
+		}
+		return false;
+	}
+
+	synchronized object nextToGather() {
+		point c = getCenter();
+		float minDistance = 30;
+		object item;
+
+		while (true) {
+			item = search(type, c, minDistance);
+			if (!isInStockpile(item)) break;
+			minDistance = distance2d(c, item.position) + 0.1;
+		}
+
+		add(item);
+		return item;
+	}
+}
+
+public class StockpileItem {
+	static int FREE = 0;
+	static int RESERVED = 1;
+	int status;
+	object item;
+
+	void StockpileItem(object _item) {
+		item = _item;
+		status = FREE;
+	}
+}
+
+public class StockpileSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		float spaceNeeded = 10 + radius(o);
+		if (distance2d(p, o.position) < spaceNeeded) return false;
+
+		// Check for "relatively flat
+		float max = topo(p);
+		float min = topo(p);
+
+		for (int angle = 0; angle < 360; angle += 90) {
+			float height = topo(alongDirection(p, angle, 9));
+			if (height > max) max = height;
+			if (height < min) min = height;
+		}
+		if (max - min > 1) return false;
+
+		return true;
+	}
+}
+
+public class ItemSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		// IDEA: if we used put(point, true) and dropped exactly, we should be able
+		// to reduce the amount of open space needed.
+		float spaceNeeded = 2 + radius(o);
+		if (distance2d(p, o.position) < spaceNeeded) return false;
+		return true;
+	}
+}
+
+public class BuildingSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		if (topo(p) < 0) return false;
+		object o = search(Any, p);
+		float spaceNeeded = 6 + radius(o);
+		if (isBuilding(o)) spaceNeeded += 1;
+		if (distance2d(p, o.position) < spaceNeeded) return false;
+		if (flatground(p, 6.5) < 6) return false;
+		return true;
+	}
+}
+
+public void object::slave()
+{
+	//register as a slave
+	CommandCenter command = new CommandCenter();
+	SlaveInfo info = command.registerSlave(this);
+
+	object o = radar(BotFactory);
+	if (o != null && distance(position, o.position) < 2) {
+		//back out of the bot factory
+		move(-7);
+	}
+
+	while (true) {
+		while(info.goal == null) {
+			info.goal = command.nextGoal(this.category);
+			if (info.goal != null) break;
+			wait(1);
+			command.checkCompletion();
+			command.checkForDeadSlaves(this);
+		}
+
+		message("New goal: " + info.goal.toString(), DisplayInfo);
+		// wait(5);
+		info.status = info.BUSY;
+		bool success = info.goal.perform(new Bot(this));
+		if (success) {
+			info.goal.status = info.goal.DONE;
+			// message("Finished goal: " + info.goal.toString(), DisplayInfo);
+		} else {
+			message("Failed goal: " + info.goal.toString(), DisplayWarning);
+			info.goal.status = info.goal.NONE;
+		}
+		info.goal = null;
+		info.status = info.FREE;
+	}
+}
+
+point findShipSpot() {
+	object o = radar(SpaceShip);
+
+	// FIX: put this back to inline construction when melex fixes his code
+	SpotChecker c = new ShipSpotChecker();
+	return findSpot(c, o.position, 0, 1);
+}
+
+public class ShipSpotChecker extends SpotChecker {
+	public bool check(point p) {
+		object o = search(Any, p);
+		return (distance2d(p, o.position) > 3);
+	}
+}
+
+public class EnsureBotGoal extends Goal {
+	int type;
+
+	void EnsureBotGoal(int _type) {
+		type = _type;
+	}
+
+	bool isComplete() {
+		CommandCenter command = new CommandCenter();
+		return command.hasSlave(type);
+	}
+
+	void initializeSubGoals() {
+		subGoals[0] = new BuildBotGoal(type);
+	}
+
+	bool perform(Bot bot) {
+		if (subGoals[0].status == DONE && !isComplete()) {
+			subGoals[0] = new BuildBotGoal(type);
+		}
+
+		return isComplete();
+	}
+
+	string toString() {
+		return "Ensure Bot (" + categoryString(type) + ")";
 	}
 }
 
@@ -784,67 +882,6 @@ public class GatherGoal extends Goal {
 	}
 }
 
-point findShipSpot() {
-	object o = radar(SpaceShip);
-
-	// FIX: put this back to inline construction when melex fixes his code
-	SpotChecker c = new ShipSpotChecker();
-	return findSpot(c, o.position, 0, 1);
-}
-
-public class ShipSpotChecker extends SpotChecker {
-	public bool check(point p) {
-		object o = search(Any, p);
-		return (distance2d(p, o.position) > 3);
-	}
-}
-
-public class BuildingSpotChecker extends SpotChecker {
-	public bool check(point p) {
-		if (topo(p) < 0) return false;
-		object o = search(Any, p);
-		float spaceNeeded = 6 + radius(o);
-		if (isBuilding(o)) spaceNeeded += 1;
-		if (distance2d(p, o.position) < spaceNeeded) return false;
-		if (flatground(p, 6.5) < 6) return false;
-		return true;
-	}
-}
-
-public class StockpileSpotChecker extends SpotChecker {
-	public bool check(point p) {
-		if (topo(p) < 0) return false;
-		object o = search(Any, p);
-		float spaceNeeded = 10 + radius(o);
-		if (distance2d(p, o.position) < spaceNeeded) return false;
-
-		// Check for "relatively flat
-		float max = topo(p);
-		float min = topo(p);
-
-		for (int angle = 0; angle < 360; angle += 90) {
-			float height = topo(alongDirection(p, angle, 9));
-			if (height > max) max = height;
-			if (height < min) min = height;
-		}
-		if (max - min > 1) return false;
-
-		return true;
-	}
-}
-
-public class ItemSpotChecker extends SpotChecker {
-	public bool check(point p) {
-		if (topo(p) < 0) return false;
-		object o = search(Any, p);
-		// IDEA: if we used put(point, true) and dropped exactly, we should be able
-		// to reduce the amount of open space needed.
-		float spaceNeeded = 2 + radius(o);
-		if (distance2d(p, o.position) < spaceNeeded) return false;
-		return true;
-	}
-}
-
 public class KillGoal extends Goal {
 	void KillGoal() {
 		actorBotType = WingedShooter;
@@ -868,57 +905,4 @@ public class KillGoal extends Goal {
 	string toString() {
 		return "Kill";
 	}
-}
-
-public void object::slave()
-{
-	//register as a slave
-	CommandCenter command = new CommandCenter();
-	SlaveInfo info = command.registerSlave(this);
-
-	object o = radar(BotFactory);
-	if (o != null && distance(position, o.position) < 2) {
-		//back out of the bot factory
-		move(-7);
-	}
-
-	while (true) {
-		while(info.goal == null) {
-			info.goal = command.nextGoal(this.category);
-			if (info.goal != null) break;
-			wait(1);
-			command.checkCompletion();
-			command.checkForDeadSlaves(this);
-		}
-
-		message("New goal: " + info.goal.toString(), DisplayInfo);
-		// wait(5);
-		info.status = info.BUSY;
-		bool success = info.goal.perform(new Bot(this));
-		if (success) {
-			info.goal.status = info.goal.DONE;
-			// message("Finished goal: " + info.goal.toString(), DisplayInfo);
-		} else {
-			message("Failed goal: " + info.goal.toString(), DisplayWarning);
-			info.goal.status = info.goal.NONE;
-		}
-		info.goal = null;
-		info.status = info.FREE;
-	}
-}
-
-//gathers a type of resource to location
-void object::collect(float[] params) {
-	float resource = params[0];
-	point dropOff = new point(params[1], params[2]);
-	bool shouldWait = (params[3] != 0);
-
-	Bot bot(this);
-	bot.hoverHeight = 5;
-
-	while(bot.get(resource, dropOff, 30, shouldWait)) {
-		bot.deposit(dropOff);
-	}
-
-	message("No more!");
 }
