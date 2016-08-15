@@ -1,20 +1,15 @@
-void addGoals(CommandCenter command) {
-	Goal g = new LoadGoal(BlackBox, 1);
-	command.addGoal(g);
-	g = new BoardGoal(WheeledGrabber);
-	command.addGoal(g);
+public class P1L3 extends Level {
+	void addGoals(CommandCenter command) {
+		Goal g = new LoadGoal(BlackBox);
+		command.addGoal(g);
+		g = new BoardGoal(WheeledGrabber);
+		command.addGoal(g);
+	}
+
+	void satelliteReport(Base base) {}
 }
 
 extern void object::P1L3() {
-	CommandCenter command = new CommandCenter();
-
-	object that = this;
-	command.registerSlave(that);
-	//command.checkForUnregisteredSlaves(that);
-
-	command.resetGoals();
-	addGoals(command);
-
-	//run slave script
-	slave();
+	Level level = new P1L3();
+	level.solve(this, true);
 }

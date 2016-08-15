@@ -257,8 +257,9 @@ public class Base {
 		// TODO: write searchAll (like radarAll) so we don't have to depend on the
 		// robot being on the space ship;
 		if (distance2d(bot.position, center) > 8) {
-			message("Robot is too far from base center to register resoruces", DisplayError);
-			throw 1;
+			message("Robot is too far from base center to register resoruces", DisplayWarning);
+			Bot theBot(bot);
+			theBot.botGoto(center);
 		}
 
 		Const const();
@@ -517,6 +518,10 @@ public class Level {
 	}
 
 	void solve(object bot) {
+		solve(bot, false);
+	}
+
+	void solve(object bot, bool skipRegisteringSlaves) {
 		CommandCenter command = new CommandCenter();
 		command.resetGoals();
 		addGoals(command);
@@ -526,7 +531,7 @@ public class Level {
 		base.registerStartingResources(bot);
 
 		command.registerSlave(bot);
-		command.checkForUnregisteredSlaves(bot);
+		if (!skipRegisteringSlaves) command.checkForUnregisteredSlaves(bot);
 
 		//run slave script
 		bot.slave();
@@ -1338,7 +1343,11 @@ public class GatherGoal extends Goal {
 		type = _type;
 		Base b = new Base();
 		stockpile = b.getStockpile(type);
-		actorBotType = WingedGrabber;
+		if (canresearch(ResearchWinged)) {
+			actorBotType = WingedGrabber;
+		} else {
+			actorBotType = WheeledGrabber;
+		}
 	}
 
 	bool isComplete() {
@@ -1365,6 +1374,11 @@ public class GatherGoal extends Goal {
 		}
 
 		bool success = bot.get(item);
+		if (!success) { // Not reachable by wheeled
+			upgradeActor();
+			return false;
+		}
+
 		if (type == PowerCell && item.energyLevel < 1) {
 			object o = radar(PowerStation);
 			bot.botGoto(o.position, 1);
