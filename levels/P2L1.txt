@@ -1,6 +1,6 @@
 public class P2L1 extends Level {
 	void addGoals(CommandCenter command) {
-		Goal g = new LoadGoal(TitaniumOre, 4);
+		Goal g = new LoadManyGoal(TitaniumOre, 4);
 		command.addGoal(g);
 		g = new BoardGoal(WingedGrabber);
 		command.addGoal(g);

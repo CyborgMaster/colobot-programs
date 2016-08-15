@@ -5,7 +5,7 @@
  * when repairing fly higher to avoid damage
  */
 
-extern public void BotClass() {}
+extern public void Utilities() {}
 
 public bool object::isAlive() {
 	return search(category, position) == this;

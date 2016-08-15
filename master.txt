@@ -1,5 +1,4 @@
-// TODO: sometime driving gets stuck on starting
-// TODO: load should allow loading each resource as it is gathered
+// TODO: grabbing sometimes fails, deal with it
 // TODO: dropping sometimes fails, deal with it
 // TODO: BIG - idle goals (gather)
 // TODO: what to do when runs out of batteries?
@@ -654,6 +653,7 @@ public class Bot {
 		errmode(0);
 		int err = 0;
 		bool arrived = false;
+		notMoving = false;
 		while (!arrived) {
 			try {
 				err = goto(pos);
@@ -703,6 +703,8 @@ public class Bot {
 	}
 
 	public bool flyto(point pos, float tollerance, bool land) {
+		notMoving = false;
+
 		while(distance2d(me.position, pos) > tollerance) {
 			if (checkRefit() && breakOnRefit) return false;
 			checkStuck();
@@ -1015,12 +1017,40 @@ public class EnsureBotGoal extends Goal {
 	}
 }
 
-//Loads a certain number of a resource onto the ship
+// Loads one of a resource onto the ship
 public class LoadGoal extends Goal {
+	int resource;
+
+	void LoadGoal(int _resource) {
+		resource = _resource;
+	}
+
+	bool isComplete() {
+		return status == DONE;
+	}
+
+	void initializeSubGoals() {
+		subGoals[0] = new ReserveResourceGoal(resource, "Load");
+	}
+
+	bool perform(Bot bot) {
+		ReserveResourceGoal g = subGoals[0];
+		bot.get(g.resource);
+		bot.put(findShipSpot(), true);
+		return true;
+	}
+
+	string toString() {
+		return "Load (" + categoryString(resource) + ")";
+	}
+}
+
+// Loads multiple of a resource onto the ship
+public class LoadManyGoal extends Goal {
 	int resource;
 	int count;
 
-	void LoadGoal(int _resource, int _count) {
+	void LoadManyGoal(int _resource, int _count) {
 		resource = _resource;
 		count = _count;
 	}
@@ -1031,23 +1061,17 @@ public class LoadGoal extends Goal {
 
 	void initializeSubGoals() {
 		for (int i = 0; i < count; i++) {
-			subGoals[i] = new ReserveResourceGoal(resource, "Load");
+			subGoals[i] = new LoadGoal(resource);
 		}
 	}
 
 	bool perform(Bot bot) {
-		object ship = radar(SpaceShip);
-
-		for (int i = 0; i < count; i++ ) {
-			ReserveResourceGoal g = subGoals[i];
-			bot.get(g.resource);
-			bot.put(findShipSpot(), true);
-		}
+		// Nothing to do, this is just a meta goal to get many loads going in parallel
 		return true;
 	}
 
 	string toString() {
-		return "Load (" + categoryString(resource) + ")";
+		return "LoadMany (" + categoryString(resource) + ")";
 	}
 }
 
