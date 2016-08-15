@@ -13,7 +13,7 @@ public bool object::isAlive() {
 
 public class SpotChecker {
 	public bool check(point p) {
-		message("Not implemented", DisplayError);
+		message("check not implemented", DisplayError);
 		throw 1;
 	}
 }
